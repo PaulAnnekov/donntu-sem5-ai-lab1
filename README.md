@@ -1,4 +1,6 @@
-donntu-sem5-ai-lab1
-===================
+Diagnose system
+===============
 
-Lab 1 on AI in Donetsk National Technical University
+Diagnose system based on the principle of complete coincidence.
+
+This project was made for Lab 1 on AI in Donetsk National Technical University.
