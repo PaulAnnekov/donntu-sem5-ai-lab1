@@ -9,7 +9,7 @@ html(lang='ru')
         nav.navbar.navbar-default(role='navigation')
             .navbar-header
                 button.navbar-toggle(type='button', data-toggle='collapse', data-target='#bs-example-navbar-collapse-1')
-                    span.icon-bar Toggle navigation
+                    span.sr-only Toggle navigation
                     span.icon-bar
                     span.icon-bar
                     span.icon-bar
@@ -17,9 +17,9 @@ html(lang='ru')
 
             #bs-example-navbar-collapse-1.collapse.navbar-collapse
                 ul.nav.navbar-nav
-                    li.active
-                        a(href='#') База знаний
-                    li
-                        a(href='#') Тестирование
+                    li(class=page === 'kb' ? 'active' : '')
+                        a(href='/') Knowledge base
+                    li(class=page === 'test' ? 'active' : '')
+                        a(href='/test') Test
         .container
             block content

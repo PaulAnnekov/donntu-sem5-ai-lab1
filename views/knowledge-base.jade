@@ -1,0 +1,21 @@
+extends layout
+
+block content
+    .page-header
+        h1 Knowledge base
+    .panel.panel-default
+        .panel-heading Add New Diagnosis
+        .panel-body
+            form#diagnosis-add(role='form')
+                .form-group
+                    label(for='diagnosis') Diagnosis
+                    input#diagnosis.form-control(type='text', placeholder='Diagnosis name')
+                .form-group
+                    label(for='symptom') Symptoms
+                        .input-group
+                            input#symptom.form-control(type="text", placeholder='Symptom name')
+                            span.input-group-btn
+                                button#add-symptom.btn.btn-default(type="button") Add Symptom
+                    select#symptoms.form-control(multiple=true)
+                button.btn.btn-default(type='submit') Add Diagnosis
+    #kb-table
