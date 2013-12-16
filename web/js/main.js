@@ -28,7 +28,17 @@ $(document).ready(function () {
 
         var symptoms = kb.getSymptoms();
         $.each(symptoms, function (id, name) {
-            $select.append(getTemplate('symptom', {
+            $select.append(getTemplate('symptom-list', {
+                id: id,
+                name: name
+            }));
+        });
+    }
+
+    function fillSymptomsRadioGroup($container) {
+        var symptoms = kb.getSymptoms();
+        $.each(symptoms, function (id, name) {
+            $container.append(getTemplate('symptom-radio', {
                 id: id,
                 name: name
             }));
@@ -36,15 +46,26 @@ $(document).ready(function () {
     }
 
     function testInit() {
-        var $symptoms = $('select#symptoms', $container);
+        var $symptoms = $('#symptoms', $container),
+            $message = $('.result', $container);
 
-        fillListWithSymptoms($symptoms);
+        fillSymptomsRadioGroup($symptoms);
 
         $symptoms.change(function () {
-            var symptomIds = $symptoms.val(),
+            var symptomIds = [],
                 diagnosisId;
 
-            if (!symptomIds) {
+            $('input[type="checkbox"]', $symptoms).each(function () {
+                var $symptom = $(this);
+                if ($symptom.prop('checked')) {
+                    symptomIds.push($symptom.val());
+                }
+            });
+
+            $message.removeClass('alert-success alert-info alert-warning');
+
+            if (!symptomIds.length) {
+                $message.addClass('alert-info').text('Choose symptoms.');
                 return;
             }
 
@@ -55,10 +76,11 @@ $(document).ready(function () {
             diagnosisId = kb.searchDiagnosis(symptomIds);
 
             if (diagnosisId === false) {
+                $message.addClass('alert-warning').text('Diagnosis with these symptoms was not found.');
                 return;
             }
 
-            console.log(diagnosisId);
+            $message.addClass('alert-success').text('Diagnosis: ' + kb.getDiagnosisName(diagnosisId));
         });
     }
 

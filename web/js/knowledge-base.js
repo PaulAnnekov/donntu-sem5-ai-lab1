@@ -118,6 +118,10 @@
             return false;
         };
 
+        this.getDiagnosisName = function (id) {
+            return diagnoses[id];
+        };
+
         this.getSymptoms = function () {
             return symptoms;
         };
