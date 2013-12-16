@@ -20,6 +20,7 @@ app.configure(function () {
     clientJs.addFile(__dirname + "/node_modules/jade/runtime.js");
     clientJs.addFile(jadeCompiler());
     clientJs.addFile(__dirname + "/vendor/jquery/jquery.js");
+    clientJs.addFile(__dirname + "/vendor/bootstrap-growl/jquery.bootstrap-growl.js");
     clientJs.addFile(__dirname + "/vendor/bootstrap/dist/js/bootstrap.js");
     clientJs.addFile(__dirname + "/web/js/knowledge-base.js");
     clientJs.addFile(__dirname + "/web/js/main.js");

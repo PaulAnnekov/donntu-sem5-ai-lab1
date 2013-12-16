@@ -8,5 +8,5 @@ table.table.table-striped
             tr(data-symptom-id="#{symptomId}")
                 td= symptom
                 each diagnosis, diagnosisId in diagnoses
-                    td(data-symptom-id="#{symptomId}", data-diagnosis-id="#{diagnosisId}")
-                        input(type="checkbox", checked=(associations[diagnosisId].indexOf(symptomId) >= 0))
+                    td
+                        input(type="checkbox", data-symptom-id="#{symptomId}", data-diagnosis-id="#{diagnosisId}", checked=(associations[diagnosisId].indexOf(symptomId) >= 0))

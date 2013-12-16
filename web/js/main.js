@@ -11,18 +11,6 @@ $(document).ready(function () {
         return Templates[name](data);
     }
 
-    function kbTableRerender() {
-        if (kb.isIncomplete()) {
-            return;
-        }
-
-        $('#kb-table').html(getTemplate('kb-table', {
-            symptoms: kb.getSymptoms(),
-            diagnoses: kb.getDiagnoses(),
-            associations: kb.getAssociations()
-        }));
-    }
-
     function fillListWithSymptoms($select) {
         $('option', $select).remove();
 
@@ -86,7 +74,41 @@ $(document).ready(function () {
 
     function kbInit() {
         var $form = $('#diagnosis-add', $container),
-            $symptoms = $('select#symptoms', $form);
+            $symptoms = $('select#symptoms', $form),
+            $kbTable = $('#kb-table');
+
+        function kbTableRerender() {
+            if (kb.isIncomplete()) {
+                return;
+            }
+
+            $kbTable.html(getTemplate('kb-table', {
+                symptoms: kb.getSymptoms(),
+                diagnoses: kb.getDiagnoses(),
+                associations: kb.getAssociations()
+            }));
+
+            $('input[type="checkbox"]', $kbTable).change(function () {
+                var $checkbox = $(this),
+                    diagnosisId = $checkbox.attr('data-diagnosis-id'),
+                    symptomId = $checkbox.attr('data-symptom-id'),
+                    success;
+
+                if ($checkbox.prop('checked')) {
+                    success = !kb.addSymptomsToDiagnosis([symptomId], diagnosisId);
+                } else {
+                    success = !kb.removeSymptomsFromDiagnosis([symptomId], diagnosisId);
+                }
+
+                if (!success) {
+                    $.bootstrapGrowl(
+                        'A new set of symptoms is a subset of the symptoms of another diagnosis, or vice versa.',
+                        {type: 'danger', width: 'auto', delay: 9999999}
+                    );
+                    $checkbox.prop('checked', !$checkbox.prop('checked'));
+                }
+            });
+        }
 
         kbTableRerender();
         fillListWithSymptoms($symptoms);
@@ -94,6 +116,10 @@ $(document).ready(function () {
         $('button#add-symptom', $form).click(function () {
             var $symptom = $('input#symptom', $form),
                 symptom = $symptom.val();
+
+            if (!symptom) {
+                return;
+            }
 
             if (kb.isSymptomExists(symptom)) {
                 $symptom.parent().addClass('has-error');
