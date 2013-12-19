@@ -16,11 +16,13 @@ app.configure(function () {
     clientCss.bind(app);
 
     clientCss.addFile(__dirname + "/vendor/bootstrap/dist/css/bootstrap.css");
+    clientCss.addFile(__dirname + "/vendor/alertify.js/themes/alertify.core.css");
+    clientCss.addFile(__dirname + "/web/css/alertify.js/bootstrap.css");
     clientCss.addFile(__dirname + "/web/css/main.css");
     clientJs.addFile(__dirname + "/node_modules/jade/runtime.js");
     clientJs.addFile(jadeCompiler());
     clientJs.addFile(__dirname + "/vendor/jquery/jquery.js");
-    clientJs.addFile(__dirname + "/vendor/bootstrap-growl/jquery.bootstrap-growl.js");
+    clientJs.addFile(__dirname + "/vendor/alertify.js/lib/alertify.js");
     clientJs.addFile(__dirname + "/vendor/bootstrap/dist/js/bootstrap.js");
     clientJs.addFile(__dirname + "/web/js/knowledge-base.js");
     clientJs.addFile(__dirname + "/web/js/main.js");

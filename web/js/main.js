@@ -1,4 +1,4 @@
-/*global $, Kb, Templates*/
+/*global $, Kb, Templates, alertify*/
 /*jslint browser: true*/
 
 $(document).ready(function () {
@@ -88,25 +88,38 @@ $(document).ready(function () {
                 associations: kb.getAssociations()
             }));
 
+            // Modify list of diagnosis' symptoms.
             $('input[type="checkbox"]', $kbTable).change(function () {
                 var $checkbox = $(this),
-                    diagnosisId = $checkbox.attr('data-diagnosis-id'),
-                    symptomId = $checkbox.attr('data-symptom-id'),
+                    diagnosisId = parseInt($checkbox.attr('data-diagnosis-id'), 10),
+                    symptomId = parseInt($checkbox.attr('data-symptom-id'), 10),
                     success;
 
                 if ($checkbox.prop('checked')) {
-                    success = !kb.addSymptomsToDiagnosis([symptomId], diagnosisId);
+                    success = kb.addSymptomsToDiagnosis([symptomId], diagnosisId);
                 } else {
-                    success = !kb.removeSymptomsFromDiagnosis([symptomId], diagnosisId);
+                    success = kb.removeSymptomsFromDiagnosis([symptomId], diagnosisId);
                 }
 
                 if (!success) {
-                    $.bootstrapGrowl(
-                        'A new set of symptoms is a subset of the symptoms of another diagnosis, or vice versa.',
-                        {type: 'danger', width: 'auto', delay: 9999999}
-                    );
+                    alertify.error('A new set of symptoms is a subset of the symptoms of another diagnosis, or vice versa.');
                     $checkbox.prop('checked', !$checkbox.prop('checked'));
+                } else {
+                    alertify.success('Symptoms list updated.');
                 }
+            });
+
+            // Remove diagnosis.
+            $('.header button', $kbTable).click(function () {
+                var $column = $(this).closest('th'),
+                    diagnosisId = parseInt($column.attr('data-diagnosis-id'), 10);
+
+                alertify.confirm("Do you really want to remove this diagnosis?", function (e) {
+                    if (e) {
+                        kb.removeDiagnosis(diagnosisId);
+                        kbTableRerender();
+                    }
+                });
             });
         }
 

@@ -1,11 +1,22 @@
 /*jslint browser: true*/
 
+/**
+ * Represents a Knowledge Base with symptoms and diagnoses.
+ *
+ * @constructor
+ */
 function Kb() {
     'use strict';
 
     var associations = {},
-        symptoms = [],
-        diagnoses = [];
+        symptoms = {
+            nextId: 1,
+            values: {}
+        },
+        diagnoses = {
+            nextId: 1,
+            values: {}
+        };
 
     function loadFromStorage() {
         var kbJson = localStorage.getItem('kb'),
@@ -43,6 +54,10 @@ function Kb() {
         var key,
             index;
 
+        // Make a copy to prevent modify of original objects.
+        firstSet = firstSet.slice();
+        secondSet = secondSet.slice();
+
         for (key in firstSet) {
             if (firstSet.hasOwnProperty(key)) {
                 index = secondSet.indexOf(firstSet[key]);
@@ -61,14 +76,17 @@ function Kb() {
     }
 
     this.addSymptom = function (name) {
+        var symptomId = symptoms.nextId;
+
         if (this.isSymptomExists(name)) {
             return false;
         }
 
-        symptoms.push(name);
+        symptoms.values[symptomId] = name;
+        symptoms.nextId++;
         saveToStorage();
 
-        return symptoms.length - 1;
+        return symptomId;
     };
 
     this.addDiagnosis = function (name) {
@@ -90,34 +108,83 @@ function Kb() {
     };
 
     /**
+     * Removes passed symptoms from diagnosis.
      *
-     *
-     * @param symptomIds
-     * @param diagnosisId
-     * @returns {*}
+     * @param {Array} symptomIds List of symptoms IDs.
+     * @param {Number} diagnosisId Diagnosis ID.
+     * @returns {boolean} <tt>true</tt> on success remove, <tt>false</tt> otherwise.
      */
     this.removeSymptomsFromDiagnosis = function (symptomIds, diagnosisId) {
         if (!associations[diagnosisId].length) {
             return false;
         }
 
-        var diagnosisSymptomIds = associations[diagnosisId];
-
-        diagnosisSymptomIds.filter(function (symptomId) {
+        var diagnosisSymptomIds = associations[diagnosisId].filter(function (symptomId) {
             return symptomIds.indexOf(symptomId) < 0;
         });
 
         return this.setSymptomsToDiagnosis(diagnosisSymptomIds, diagnosisId);
     };
 
+    /**
+     * Removes diagnosis.
+     *
+     * @param {Number} diagnosisId Diagnosis ID.
+     * @returns {Boolean} <tt>true</tt> on success, <tt>false</tt> otherwise.
+     */
+    this.removeDiagnosis = function (diagnosisId) {
+        if (!diagnoses[diagnosisId]) {
+            return false;
+        }
+
+        delete associations[diagnosisId];
+        delete diagnoses[diagnosisId];
+        saveToStorage();
+
+        return true;
+    };
+
+    /**
+     * Removes symptom.
+     *
+     * @param {Number} symptomId Symptom ID.
+     * @returns {Boolean} <tt>true</tt> on success, <tt>false</tt> otherwise.
+     */
+    this.removeSymptom = function (symptomId) {
+        var diagnosisId,
+            index;
+
+        if (!symptoms.values.hasOwnProperty(symptomId)) {
+            return false;
+        }
+
+        for (diagnosisId in associations) {
+            if (associations.hasOwnProperty(diagnosisId)) {
+                index = associations[diagnosisId].indexOf(symptomId);
+                if (index >= 0) {
+                    associations[diagnosisId].splice(index, 1);
+                }
+            }
+        }
+        // TODO: todo...
+        delete symptoms.values[symptomId];
+        saveToStorage();
+
+        return true;
+    };
+
+    /**
+     * Search diagnosis by symptoms IDs.
+     *
+     * @param {Array} symptomIds Symptoms IDs.
+     * @returns {Number|Boolean} Diagnosis ID or <tt>false</tt> if nothing found.
+     */
     this.searchDiagnosis = function (symptomIds) {
         var diagnosisId;
 
-        for (diagnosisId in diagnoses) {
-            if (diagnoses.hasOwnProperty(diagnosisId)) {
-                if (checkSubset(symptomIds, associations[diagnosisId], true)) {
-                    return diagnosisId;
-                }
+        for (diagnosisId = 0; diagnosisId < diagnoses.length; diagnosisId++) {
+            if (checkSubset(symptomIds, associations[diagnosisId], true)) {
+                return diagnosisId;
             }
         }
 
@@ -142,20 +209,20 @@ function Kb() {
 
     this.setSymptomsToDiagnosis = function (symptomIds, diagnosisId) {
         var key,
-            value,
-            symptomIdsCopy;
+            value;
 
-        // Check symptoms set entry.
-        for (key in associations) {
-            if (associations.hasOwnProperty(key)) {
-                value = associations[key];
+        if (symptomIds.length) {
+            // Check symptoms set entry.
+            for (key in associations) {
+                if (associations.hasOwnProperty(key)) {
+                    value = associations[key];
+                    key = parseInt(key, 10);
 
-                // Do not check diagnosis which symptoms we will replace and diagnoses without symptoms.
-                if (key !== diagnosisId && value.length) {
-                    symptomIdsCopy = symptomIds.slice();
-
-                    if (checkSubset(value, symptomIdsCopy)) {
-                        return false;
+                    // Do not check diagnosis which symptoms we will replace and diagnoses without symptoms.
+                    if (key !== diagnosisId && value.length) {
+                        if (checkSubset(value, symptomIds)) {
+                            return false;
+                        }
                     }
                 }
             }

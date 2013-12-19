@@ -1,0 +1,7 @@
+#kb-table .header {
+    display: inline-block;
+}
+
+#kb-table .header button {
+    margin-left: 5px;
+}
