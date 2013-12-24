@@ -90,11 +90,14 @@ function Kb() {
     };
 
     this.addDiagnosis = function (name) {
+        var diagnosisId = diagnoses.nextId;
+
         if (this.isDiagnosisExists(name)) {
             return false;
         }
 
-        var diagnosisId = diagnoses.push(name) - 1;
+        diagnoses.values[diagnosisId] = name;
+        diagnoses.nextId++;
         associations[diagnosisId] = [];
         saveToStorage();
 
@@ -133,12 +136,12 @@ function Kb() {
      * @returns {Boolean} <tt>true</tt> on success, <tt>false</tt> otherwise.
      */
     this.removeDiagnosis = function (diagnosisId) {
-        if (!diagnoses[diagnosisId]) {
+        if (!diagnoses.values.hasOwnProperty(diagnosisId)) {
             return false;
         }
 
         delete associations[diagnosisId];
-        delete diagnoses[diagnosisId];
+        delete diagnoses.values[diagnosisId];
         saveToStorage();
 
         return true;
@@ -166,7 +169,7 @@ function Kb() {
                 }
             }
         }
-        // TODO: todo...
+
         delete symptoms.values[symptomId];
         saveToStorage();
 
@@ -182,8 +185,8 @@ function Kb() {
     this.searchDiagnosis = function (symptomIds) {
         var diagnosisId;
 
-        for (diagnosisId = 0; diagnosisId < diagnoses.length; diagnosisId++) {
-            if (checkSubset(symptomIds, associations[diagnosisId], true)) {
+        for (diagnosisId in diagnoses) {
+            if (diagnoses.hasOwnProperty(diagnosisId) && checkSubset(symptomIds, associations[diagnosisId], true)) {
                 return diagnosisId;
             }
         }
@@ -192,7 +195,7 @@ function Kb() {
     };
 
     this.getDiagnosisName = function (id) {
-        return diagnoses[id];
+        return diagnoses.values[id];
     };
 
     this.getSymptoms = function () {
@@ -235,15 +238,31 @@ function Kb() {
     };
 
     this.isSymptomExists = function (name) {
-        return symptoms.indexOf(name) >= 0;
+        var symptomId;
+
+        for (symptomId in symptoms) {
+            if (symptoms.hasOwnProperty(symptomId) && symptoms[symptomId] === name) {
+                return true;
+            }
+        }
+
+        return false;
     };
 
     this.isDiagnosisExists = function (name) {
-        return diagnoses.indexOf(name) >= 0;
+        var diagnosisId;
+
+        for (diagnosisId in diagnoses) {
+            if (diagnoses.hasOwnProperty(diagnosisId) && diagnoses[diagnosisId] === name) {
+                return true;
+            }
+        }
+
+        return false;
     };
 
     this.isIncomplete = function () {
-        return !symptoms.length || !diagnoses.length;
+        return !Object.getOwnPropertyNames(symptoms).length || !Object.getOwnPropertyNames(diagnoses).length;
     };
 
     function init() {
