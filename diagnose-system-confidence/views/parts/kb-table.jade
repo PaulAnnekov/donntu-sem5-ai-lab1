@@ -1,0 +1,16 @@
+table.table.table-striped
+    thead
+        th
+        each diagnosis, diagnosisId in diagnoses
+            th(data-diagnosis-id="#{diagnosisId}")
+                div.header= diagnosis
+                    button.close(type="button", aria-hidden="true", title="Remove") &times;
+    tbody
+        each symptom, symptomId in symptoms
+            tr(data-symptom-id="#{symptomId}")
+                td
+                    div.header= symptom
+                        button.close(type="button", aria-hidden="true", title="Remove") &times;
+                each diagnosis, diagnosisId in diagnoses
+                    td
+                        input(type="checkbox", data-symptom-id="#{symptomId}", data-diagnosis-id="#{diagnosisId}", checked=associations[diagnosisId].indexOf(parseInt(symptomId)) >= 0)
