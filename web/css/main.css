@@ -1,5 +1,5 @@
 #kb-table .header {
-    display: inline-block;
+    display: flex;
 }
 
 #kb-table .header button {

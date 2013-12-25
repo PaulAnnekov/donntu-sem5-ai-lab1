@@ -52,27 +52,29 @@ function Kb() {
      */
     function checkSubset(firstSet, secondSet, isEqual) {
         var key,
-            index;
+            index,
+            firstSetCopy,
+            secondSetCopy;
 
         // Make a copy to prevent modify of original objects.
-        firstSet = firstSet.slice();
-        secondSet = secondSet.slice();
+        firstSetCopy = firstSet.slice();
+        secondSetCopy = secondSet.slice();
 
         for (key in firstSet) {
             if (firstSet.hasOwnProperty(key)) {
-                index = secondSet.indexOf(firstSet[key]);
+                index = secondSetCopy.indexOf(firstSet[key]);
                 if (index >= 0) {
-                    firstSet.splice(index, 1);
-                    secondSet.splice(index, 1);
+                    firstSetCopy.splice(firstSetCopy.indexOf(firstSet[key]), 1);
+                    secondSetCopy.splice(index, 1);
                 }
             }
         }
 
-        if (!isEqual && (!firstSet.length || !secondSet.length)) {
+        if (!isEqual && (!firstSetCopy.length || !secondSetCopy.length)) {
             return true;
         }
 
-        return isEqual && !firstSet.length && !secondSet.length;
+        return isEqual && !firstSetCopy.length && !secondSetCopy.length;
     }
 
     this.addSymptom = function (name) {
@@ -156,6 +158,7 @@ function Kb() {
     this.removeSymptom = function (symptomId) {
         var diagnosisId,
             index;
+        symptomId = parseInt(symptomId, 10);
 
         if (!symptoms.values.hasOwnProperty(symptomId)) {
             return false;
@@ -185,9 +188,11 @@ function Kb() {
     this.searchDiagnosis = function (symptomIds) {
         var diagnosisId;
 
-        for (diagnosisId in diagnoses) {
-            if (diagnoses.hasOwnProperty(diagnosisId) && checkSubset(symptomIds, associations[diagnosisId], true)) {
-                return diagnosisId;
+        for (diagnosisId in diagnoses.values) {
+            if (diagnoses.values.hasOwnProperty(diagnosisId)) {
+                if (checkSubset(symptomIds, associations[diagnosisId], true)) {
+                    return diagnosisId;
+                }
             }
         }
 
@@ -199,11 +204,11 @@ function Kb() {
     };
 
     this.getSymptoms = function () {
-        return symptoms;
+        return symptoms.values;
     };
 
     this.getDiagnoses = function () {
-        return diagnoses;
+        return diagnoses.values;
     };
 
     this.getAssociations = function () {
@@ -262,7 +267,7 @@ function Kb() {
     };
 
     this.isIncomplete = function () {
-        return !Object.getOwnPropertyNames(symptoms).length || !Object.getOwnPropertyNames(diagnoses).length;
+        return !Object.getOwnPropertyNames(symptoms.values).length && !Object.getOwnPropertyNames(diagnoses.values).length;
     };
 
     function init() {

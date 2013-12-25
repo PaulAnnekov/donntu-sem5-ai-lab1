@@ -11,18 +11,6 @@ $(document).ready(function () {
         return Templates[name](data);
     }
 
-    function fillListWithSymptoms($select) {
-        $('option', $select).remove();
-
-        var symptoms = kb.getSymptoms();
-        $.each(symptoms, function (id, name) {
-            $select.append(getTemplate('symptom-list', {
-                id: id,
-                name: name
-            }));
-        });
-    }
-
     function fillSymptomsRadioGroup($container) {
         var symptoms = kb.getSymptoms();
         $.each(symptoms, function (id, name) {
@@ -77,8 +65,21 @@ $(document).ready(function () {
             $symptoms = $('select#symptoms', $form),
             $kbTable = $('#kb-table');
 
+        function fillListWithSymptoms() {
+            $('option', $symptoms).remove();
+
+            var symptoms = kb.getSymptoms();
+            $.each(symptoms, function (id, name) {
+                $symptoms.append(getTemplate('symptom-list', {
+                    id: id,
+                    name: name
+                }));
+            });
+        }
+
         function kbTableRerender() {
             if (kb.isIncomplete()) {
+                $kbTable.html('');
                 return;
             }
 
@@ -110,7 +111,7 @@ $(document).ready(function () {
             });
 
             // Remove diagnosis.
-            $('.header button', $kbTable).click(function () {
+            $('thead .header button', $kbTable).click(function () {
                 var $column = $(this).closest('th'),
                     diagnosisId = parseInt($column.attr('data-diagnosis-id'), 10);
 
@@ -121,10 +122,24 @@ $(document).ready(function () {
                     }
                 });
             });
+
+            // Remove symptom.
+            $('tbody .header button', $kbTable).click(function () {
+                var $row = $(this).closest('tr'),
+                    symptomId = parseInt($row.attr('data-symptom-id'), 10);
+
+                alertify.confirm("Do you really want to remove this symptom?", function (e) {
+                    if (e) {
+                        kb.removeSymptom(symptomId);
+                        fillListWithSymptoms();
+                        kbTableRerender();
+                    }
+                });
+            });
         }
 
         kbTableRerender();
-        fillListWithSymptoms($symptoms);
+        fillListWithSymptoms();
 
         $('button#add-symptom', $form).click(function () {
             var $symptom = $('input#symptom', $form),
@@ -141,7 +156,7 @@ $(document).ready(function () {
 
             kb.addSymptom(symptom);
 
-            fillListWithSymptoms($symptoms);
+            fillListWithSymptoms();
             $symptom.val('');
 
             kbTableRerender();
@@ -157,7 +172,7 @@ $(document).ready(function () {
                 symptomIds = $symptoms.val();
 
             if (!symptomIds) {
-                $symptoms.parent().addClass('has-error');
+                alertify.error('You must select at least one symptom.');
                 return;
             }
 
@@ -166,14 +181,15 @@ $(document).ready(function () {
             });
 
             if (kb.isDiagnosisExists(diagnosis)) {
-                $diagnosis.parent().addClass('has-error');
+                alertify.error('Diagnosis with such name is already exists.');
                 return;
             }
 
             diagnosisId = kb.addDiagnosis(diagnosis);
+            kbTableRerender();
 
             if (!kb.addSymptomsToDiagnosis(symptomIds, diagnosisId)) {
-                $symptoms.parent().addClass('has-error');
+                alertify.error('Symptoms set is a subset of symptoms from another diagnosis.');
                 return;
             }
 

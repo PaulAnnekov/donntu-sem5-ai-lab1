@@ -8,7 +8,9 @@ table.table.table-striped
     tbody
         each symptom, symptomId in symptoms
             tr(data-symptom-id="#{symptomId}")
-                td= symptom
+                td
+                    div.header= symptom
+                        button.close(type="button", aria-hidden="true", title="Remove") &times;
                 each diagnosis, diagnosisId in diagnoses
                     td
-                        input(type="checkbox", data-symptom-id="#{symptomId}", data-diagnosis-id="#{diagnosisId}", checked=(associations[diagnosisId].indexOf(symptomId) >= 0))
+                        input(type="checkbox", data-symptom-id="#{symptomId}", data-diagnosis-id="#{diagnosisId}", checked=associations[diagnosisId].indexOf(parseInt(symptomId)) >= 0)
