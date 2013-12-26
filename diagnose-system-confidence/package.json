@@ -1,12 +1,10 @@
 {
-  "name": "Lab1",
+  "name": "Lab2",
   "version": "0.0.1",
   "private": "true",
   "dependencies": {
     "express": "~3",
     "jade": "~0",
-    "piler": "~0",
-    "jadeify": "~0",
-    "browserify": "~3"
+    "piler": "~0"
   }
 }

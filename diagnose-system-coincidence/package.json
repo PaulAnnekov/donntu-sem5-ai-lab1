@@ -5,8 +5,6 @@
   "dependencies": {
     "express": "~3",
     "jade": "~0",
-    "piler": "~0",
-    "jadeify": "~0",
-    "browserify": "~3"
+    "piler": "~0"
   }
 }

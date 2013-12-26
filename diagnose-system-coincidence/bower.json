@@ -1,8 +1,7 @@
 {
-  "name": "Lab 1",
-  "version": "1.0.0",
+  "name": "Lab1",
+  "version": "0.0.1",
   "dependencies": {
-    "requirejs": "latest",
     "bootstrap": "latest",
     "jquery": "latest",
     "alertify.js": "latest"
