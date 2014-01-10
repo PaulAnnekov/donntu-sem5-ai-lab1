@@ -1,8 +1,11 @@
+#include "lib.hpp"
+
 #include <cstdlib>
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <vector>
+#include <mpi.h>
 
 using namespace std;
 
@@ -20,7 +23,22 @@ void parse_input(const char* string_vectors, vector< vector<float> > &vectors) {
     }
 }
 
-void start_master(char** argv) {
+void start_master(int argc, char **argv) {
     vector< vector<float> > vectors;
+    int size;
+    
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    
+    if (argc != 2) {
+        log("You must specify input vectors. Smth like 12,-32.04;4.03,905");
+        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+    }
+    if (size<2) {
+        log("More then one process must be created");
+        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+    }
+    
     parse_input(argv[1],vectors);
+
+    // TODO: Send vectors to processes.
 }

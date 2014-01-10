@@ -1,4 +1,3 @@
-#include "lib.hpp"
 #include "master.hpp"
 #include "slave.hpp"
 
@@ -8,18 +7,15 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        log("You must specify input vectors. Smth like 12,-32.04;4.03,905");
-        return EXIT_FAILURE;
-    }
-
-    int rank;
+    int rank, size;
+    
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    
     if (rank==0) {
-        start_master(argv);
+        start_master(argc, argv);
     } else {
-        start_slave();
+        //start_slave();
     }
 
     MPI_Finalize();
