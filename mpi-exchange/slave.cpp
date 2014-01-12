@@ -1,23 +1,27 @@
-#include <mpich2/mpi.h>
+#include "lib.hpp"
 
-void start_slave(int source_rank) {
-//    MPI_Status status;
-//    int number_amount;
-//    
-//    // Probe for an incoming message from process zero
-//    MPI_Probe(0, 0, MPI_COMM_WORLD, &status);
-// 
-//    // When probe returns, the status object has the size and other
-//    // attributes of the incoming message. Get the size of the message
-//    MPI_Get_count(&status, MPI_INT, &number_amount);
-// 
-//    // Allocate a buffer just big enough to hold the incoming numbers
-//    int* number_buf = (int*)malloc(sizeof(int) * number_amount);
-// 
-//    // Now receive the message with the allocated buffer
-//    MPI_Recv(number_buf, number_amount, MPI_INT, 0, 0, MPI_COMM_WORLD,
-//             MPI_STATUS_IGNORE);
-//    printf("1 dynamically received %d numbers from 0.\n",
-//           number_amount);
-//    free(number_buf);
+#include <mpich2/mpi.h>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+void start_slave(int master_rank) {
+    MPI_Status status;
+    int rank;
+    
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    
+    // While we are still alive - wait and process vectors from master.
+    while(true) {
+        vector<float> float_vector = mpi_receive_vector(master_rank, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        process_log(rank, "Has got float array of size %d with tag %d", float_vector.size(), status.MPI_TAG);
+        
+        std::sort(float_vector.begin(), float_vector.end(), [](float a, float b)
+        {
+          return a < b;
+        });
+        
+        MPI_Send(&float_vector[0], float_vector.size(), MPI_FLOAT, master_rank, status.MPI_TAG, MPI_COMM_WORLD);
+    }
 }

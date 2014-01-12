@@ -1,7 +1,12 @@
 #ifndef SLAVE_HPP
 #define	SLAVE_HPP
 
-void start_slave(int source_rank);
+/**
+ * Main function for each slave process.
+ * 
+ * @param int master_rank Rank of the master process.
+ */
+void start_slave(int master_rank);
 
 #endif	/* SLAVE_HPP */
 

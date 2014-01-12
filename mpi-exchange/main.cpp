@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     if (rank==0) {
         start_master(argc, argv);
     } else {
-        //start_slave();
+        start_slave(0);
     }
 
     MPI_Finalize();
