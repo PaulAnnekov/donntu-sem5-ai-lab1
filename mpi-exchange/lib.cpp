@@ -31,10 +31,13 @@ void process_log(std::string message, ...) {
 }
 
 vector<float> mpi_receive_vector(int source, int tag, MPI_Comm comm, MPI_Status *status) {
-    int length, rank;
+    int length;
     
-    MPI_Comm_rank(comm, &rank);
-    MPI_Probe(source, tag, comm, status);
+    // Check if status was already received.
+    if (!status->count) {
+        MPI_Probe(source, tag, comm, status);
+    }
+        
     MPI_Get_count(status, MPI_FLOAT, &length);
     
     vector<float> float_vector(length);

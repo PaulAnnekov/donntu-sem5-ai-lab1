@@ -14,6 +14,11 @@ void start_slave(int master_rank) {
     
     // While we are still alive - wait and process vectors from master.
     while(true) {
+        MPI_Probe(master_rank, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        if (status.MPI_TAG==MPIE_TAG_FINALIZE) {
+            break;
+        }
+        
         vector<float> float_vector = mpi_receive_vector(master_rank, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         process_log(rank, "Has got float array of size %d with tag %d", float_vector.size(), status.MPI_TAG);
         
