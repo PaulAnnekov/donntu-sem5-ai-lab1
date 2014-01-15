@@ -10,7 +10,14 @@
 
 using namespace std;
 
-void parse_input(const char* string_vectors, vector< vector<float> > &vectors) {
+/**
+ * Converts human-readable representation of list of vectors to std::vector of vectors.
+ * 
+ * @param string_vectors String that stores list of vectors in the following format: x1,y1,...;x2,y2,...;...
+ * @return Vector of vectors.
+ */
+vector< vector<float> > parse_input(const char* string_vectors) {
+    vector< vector<float> > vectors;
     string data(string_vectors);
 
     stringstream ss1(data);
@@ -22,18 +29,31 @@ void parse_input(const char* string_vectors, vector< vector<float> > &vectors) {
             vectors[vectors.size()-1].push_back(atof(number.c_str()));
         }
     }
+    
+    return vectors;
 }
 
+/**
+ * Calculates vectors sum.
+ * 
+ * @param vectors Vector of vectors to sum.
+ * @return Sum of input vectors.
+ */
 vector<float> vector_sum(vector< vector<float> > &vectors) {
     vector<float> sum(vectors[0].size(), 0);
     for (vector<float> &single_vector : vectors) {
         std::transform(single_vector.begin(), single_vector.end(), sum.begin(), sum.begin(), std::plus<float>());
     }
     
-    // TODO: fix sum. wrong now.
     return sum;
 }
 
+/**
+ * Converts std::vector to human-readable std::string.
+ * 
+ * @param input_vector Vector to convert.
+ * @return Human-readable vector representation.
+ */
 string vector_to_human(vector<float> &input_vector) {
     string output;
     for (float &value : input_vector) {
@@ -62,7 +82,7 @@ void start_master(int argc, char **argv) {
     
     process_log("Number of processes: %d", size);
     
-    parse_input(argv[1],input_vectors);
+    input_vectors=parse_input(argv[1]);
     
     for (vector<float> &single_vector : input_vectors) {
         process_log("Send vector #%d to process #%d", vector_index, next_rank);
@@ -84,7 +104,7 @@ void start_master(int argc, char **argv) {
     }
     
     vector<float> sum=vector_sum(output_vectors);
-    process_log(vector_to_human(sum));
+    process_log("Result: " + vector_to_human(sum));
     
     int data=1;
     for (int i = 1; i < size; i++) {

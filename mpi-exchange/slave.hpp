@@ -2,7 +2,7 @@
 #define	SLAVE_HPP
 
 /**
- * Main function for each slave process.
+ * Main function that controls each slave process.
  * 
  * @param int master_rank Rank of the master process.
  */
