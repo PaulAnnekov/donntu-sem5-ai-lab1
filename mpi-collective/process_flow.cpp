@@ -37,11 +37,21 @@ bool ProcessFlow::check(int argc) {
     return true;
 }
 
-int ProcessFlow::rows_per_process(int total_rows) {
-    if (total_rows > this->world_size) {
-        return (total_rows + this->world_size - 1) / this->world_size;
-    } else {
-        return 1;
+void ProcessFlow::displace_get(int rows_count, int cols_count, int *send_count, int *displacement) {
+    int min = rows_count / this->world_size,
+        extra = rows_count % this->world_size,
+        k = 0;
+    
+    for (int i = 0; i < this->world_size; i++) {
+        send_count[i] = min;
+        if (i < extra) {
+            send_count[i] += 1;
+        }
+        
+        send_count[i] *= cols_count;
+        
+        displacement[i] = k;
+        k = k+send_count[i];
     }
 }
 
@@ -56,23 +66,29 @@ bool ProcessFlow::run(int argc, char** argv) {
         
         matrix=parse_input(argv[1]);
         cols_data[0]=matrix.cols;
-        cols_data[1]=rows_per_process(matrix.rows);
+        cols_data[1]=matrix.rows;
     
-        process_log("Each process will receive %d rows with %d columns", cols_data[1], cols_data[0]);
+        process_log("Matrix has %d rows and %d columns", cols_data[1], cols_data[0]);
     }
     
     MPI_Bcast(cols_data, 2, MPI_FLOAT, MASTER_RANK, MPI_COMM_WORLD);
     
-    int input_size=cols_data[0]*cols_data[1];
-    float rows[input_size];
+    int send_count[this->world_size], displacement[this->world_size];
+    displace_get(cols_data[1],cols_data[0],send_count,displacement);
+    float rows[send_count[this->world_rank]];
     
-    int res=MPI_Scatter(matrix.data.data(), input_size, MPI_FLOAT, rows, input_size, MPI_FLOAT, MASTER_RANK, MPI_COMM_WORLD);
+    process_log(this->world_rank, "Will receive %d values starting from offset %d", send_count[this->world_rank], 
+            displacement[this->world_rank]);
     
-    if (rows == NULL) {
-        process_log(this->world_rank, "Not enough data for this process. Exit.");
-    } else {
-        process_log(this->world_rank, "Received its data part. %d", res);
+    if (send_count[this->world_rank]==0) {
+        process_log(this->world_rank, "Stopping process. Not enough data.");
+        return true;
     }
+    
+    MPI_Scatterv(matrix.data.data(), send_count, displacement, MPI_FLOAT, rows, send_count[this->world_rank], 
+            MPI_FLOAT, MASTER_RANK, MPI_COMM_WORLD);
+    
+    process_log(this->world_rank, "Received its data part.");
 }
 
 /**

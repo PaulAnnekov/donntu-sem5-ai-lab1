@@ -22,7 +22,7 @@ class ProcessFlow {
     
     bool is_master();
     bool check(int argc);
-    int rows_per_process(int total_rows);
+    void displace_get(int rows_count, int cols_count, int *send_count, int *displacement);
     
 public:
     ProcessFlow ();
