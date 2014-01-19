@@ -42,8 +42,8 @@ uout SPH,R16
 ldi r16, TCCR0B_State			
 uout TCCR0B, r16						
 
-; Clear TOV0/ clear pending interrupts.
-ldi r16, 1<<TOV0
+; Clear OCF0A / clear pending interrupts.
+ldi r16, 1<<OCF0A
 uout TIFR0, r16							
 
 ; Enable TimerCounter0 Compare Match A Interrupt.
