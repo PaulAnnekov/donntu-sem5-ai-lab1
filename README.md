@@ -46,3 +46,17 @@ This project was made for Lab 3 on Parallel Computing in the 5th semester.
 * IDE: *Netbeans 7.4*.
 * MPI library: *MPICH2*.
 * Compiler: *wrapper of MPICH2 library (mpic++)*.
+
+
+AVR. Tone generation (avr-tone-generation)
+--------------------------------------------------------------------
+
+Generation of sound with 800 Hz frequency and duration of 2 seconds for speaker on 6th bit of PORTB.
+
+This project was made for Test on Microprocessor Control Systems in the 5th semester.
+
+**Environment:**
+* OS: *Windows 7*.
+* IDE: *Atmel Studio 6*.
+* Language: *Assembler*.
+* Microcontroller: *ATmega88*.
