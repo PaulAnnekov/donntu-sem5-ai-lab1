@@ -4,25 +4,40 @@
 #include <vector>
 
 class ProcessFlow {
-
-    struct binary_matrix {
-        int rows, cols;
-        std::vector<float> data;
-    };
-
-    int world_size, world_rank;
+    int world_size, 
+        world_rank, 
+        matrix_rows, 
+        matrix_cols;
+    std::vector<float> matrix,
+                       compare_vector;
     
     /**
-     * Converts human-readable representation of list of vectors to std::vector of vectors.
+     * Parses human-readable representation of matrix and saves its data to current object.
      * 
-     * @param string_vectors String that stores list of vectors in the following format: x1,y1,...;x2,y2,...;...
-     * @return Vector of vectors.
+     * @param string_matrix String that stores list of rows in the following format: x1,y1,...;x2,y2,...;...
+     * @param string_vector String that stores vector to compare to in the following format: x1,y1,...
      */
-    binary_matrix parse_input(const char* string_vectors);
+    void parse_input(const char* string_matrix, const char* string_vector);
     
     bool is_master();
     bool check(int argc);
-    void displace_get(int rows_count, int cols_count, int *send_count, int *displacement);
+    
+    /**
+     * Calculates data that will be send to each process.
+     * 
+     * @param data_per_process Array with data count for each process.
+     * @param displacement Data offset for each process.
+     */
+    void displace_get(int *data_per_process, int *displacement);
+    
+    /**
+     * Calculates a scalar product of each input vector on vector to compare and returns array with results.
+     * 
+     * @param vectors Pointer to vectors.
+     * @param size Size of the data in vector variable.
+     * @param scalar_product Results array.
+     */
+    void scalar_product(float const *vectors, int size, float *scalar_product);
     
 public:
     ProcessFlow ();
