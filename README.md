@@ -23,7 +23,7 @@ This project was made for Lab 2 on AI in the 5th semester.
 MPI. Blocking and nonblocking exchange (mpi-exchange)
 --------------------------------------------------------------------
 
-Distributed computing of task using MPI with blocking and nonblocking exchange.
+Distributed computing of task using MPI with blocking and nonblocking exchange. Sorts each input vector and sums them.
 
 This project was made for Lab 2 on Parallel Computing in the 5th semester.
 
@@ -37,7 +37,7 @@ This project was made for Lab 2 on Parallel Computing in the 5th semester.
 MPI. Collective operations of data exchange (mpi-collective)
 --------------------------------------------------------------------
 
-Distributed computing of task using MPI with collective data exchange.
+Distributed computing of task using MPI with collective data exchange. Calculates the dot product of each row of the original matrix on the input vector and returns the minimum.
 
 This project was made for Lab 3 on Parallel Computing in the 5th semester.
 
