@@ -1,10 +1,5 @@
-#include <iostream>
 #include <string>
 #include <cstdarg>
-#include <mpi.h>
-#include <vector>
-
-using namespace std;
 
 void process_log(int rank, std::string message, ...) {
     message.insert(0, "Process #" + std::to_string(rank) + ": ");

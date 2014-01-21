@@ -1,9 +1,6 @@
 #include "lib.hpp"
 #include "process_flow.hpp"
 
-#include <cstdlib>
-#include <iostream>
-#include <string>
 #include <sstream>
 #include <vector>
 #include <mpi.h>
@@ -40,38 +37,68 @@ bool ProcessFlow::check(int argc) {
     return true;
 }
 
-void ProcessFlow::displace_get(int *data_per_process, int *displacement) {
+string ProcessFlow::vector_to_human(vector<float> &input_vector) {
+    string output;
+    for (float &value : input_vector) {
+        output.append(std::to_string(value) + ";");
+    }
+    
+    return output;
+}
+
+void ProcessFlow::get_rows_per_process(int *rows_per_process) {
     int min = matrix_rows / world_size,
-        extra = matrix_rows % world_size,
-        k = 0;
+        extra = matrix_rows % world_size;
     
     for (int i = 0; i < world_size; i++) {
-        data_per_process[i] = min;
+        rows_per_process[i] = min;
         if (i < extra) {
-            data_per_process[i] += 1;
+            rows_per_process[i] += 1;
         }
-        
-        data_per_process[i] *= matrix_cols;
+    }
+}
+
+void ProcessFlow::get_displace(int const *rows_per_process, int size, int *data_per_process, int *displacement) {
+    int k = 0;
+    
+    for (int i = 0; i < world_size; i++) {
+        data_per_process[i] = rows_per_process[i] * size;
         
         displacement[i] = k;
         k += data_per_process[i];
     }
 }
 
-void ProcessFlow::scalar_product(float const *vectors, int size, float *scalar_product) {
-    int vectors_count=size/matrix_cols;
+vector< vector<float> > ProcessFlow::array_to_vector(float const *array, int count, int total) {
+    vector< vector<float> > output_vector;
     
-    vector<float> temp_vector(matrix_cols);
-    for (int i = 0; i < vectors_count; i++) {
-        temp_vector[0]=vectors[i * matrix_cols];
-        scalar_product[i]=std::inner_product(temp_vector.begin(), temp_vector.end(), compare_vector.begin(), 0);
-    
-        process_log(world_rank, "Scalar product for row %d is %f.", world_rank+i, scalar_product[i]);
+    for (int i = 0; i < total; i++) {
+        vector<float> temp_vector(array + i * count, array + i * count + count);
+        output_vector.push_back(temp_vector);
     }
+    
+    return output_vector;
+}
+
+vector<float> ProcessFlow::scalar_product(vector< vector<float> > &vectors) {
+    vector<float> products;
+    int i=0;
+    
+    for (vector<float> &single_vector : vectors) {
+        // Attention! Initial value must be float (0.0) to get decimal number in result.
+        products.push_back(std::inner_product(single_vector.begin(), single_vector.end(), compare_vector.begin(), 0.0));
+    
+        process_log(world_rank, "Scalar product for row %d (%s) is %f", world_rank+i, 
+                vector_to_human(single_vector).c_str(), products[i]);
+        i++;
+    }
+    
+    return products;
 }
 
 bool ProcessFlow::run(int argc, char** argv) {
-    int data_per_process[world_size], 
+    int rows_per_process[world_size],
+        data_per_process[world_size], 
         displacement[world_size];
     
     if (is_master()) {
@@ -91,25 +118,43 @@ bool ProcessFlow::run(int argc, char** argv) {
     }
     MPI_Bcast(&compare_vector[0], matrix_cols, MPI_FLOAT, MASTER_RANK, MPI_COMM_WORLD);
     
-    displace_get(data_per_process,displacement);
+    get_rows_per_process(rows_per_process);
+    get_displace(rows_per_process, matrix_cols, data_per_process, displacement);
     int rows_length=data_per_process[world_rank];
     float rows[rows_length];
     
-    process_log(world_rank, "Will receive %d values starting from offset %d", data_per_process[world_rank], 
-            displacement[world_rank]);
-    
     if (data_per_process[world_rank]==0) {
-        process_log(world_rank, "Stopping process. Not enough data.");
-        return true;
+        process_log(world_rank, "Not enough data for me.");
+    } else {
+        process_log(world_rank, "Will receive %d values starting from offset %d", data_per_process[world_rank], 
+            displacement[world_rank]);
     }
     
     MPI_Scatterv(matrix.data(), data_per_process, displacement, MPI_FLOAT, 
             rows, rows_length, MPI_FLOAT, MASTER_RANK, MPI_COMM_WORLD);
     
-    process_log(world_rank, "Received its data part.");
+    if (data_per_process[world_rank]!=0) {
+        process_log(world_rank, "Received its data part.");
+    }
     
-    float product_result[rows_length/matrix_cols];
-    scalar_product(rows, rows_length, product_result);
+    vector< vector<float> > vectors=array_to_vector(rows, matrix_cols, rows_per_process[world_rank]);
+    vector<float> process_products = scalar_product(vectors);
+    
+    float products[matrix_rows];
+    get_displace(rows_per_process, 1, data_per_process, displacement);
+    MPI_Gatherv(process_products.data(), data_per_process[world_rank], MPI_FLOAT, products, data_per_process, 
+            displacement, MPI_FLOAT, MASTER_RANK, MPI_COMM_WORLD);
+    
+    if (is_master()) {
+        int min=0;
+        for (int i = 1; i < matrix_rows; i++) {
+            if (products[i] < products[min]) {
+                min=i;
+            }
+        }
+        
+        process_log("The smallest scalar product is for row %d with value %f.", min, products[min]);
+    }
 }
 
 void ProcessFlow::parse_input(const char* string_matrix, const char* string_vector) {

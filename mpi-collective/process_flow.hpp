@@ -2,7 +2,11 @@
 #define	MASTER_HPP
 
 #include <vector>
+#include <string>
 
+/**
+ * Controls process flow.
+ */
 class ProcessFlow {
     int world_size, 
         world_rank, 
@@ -19,30 +23,69 @@ class ProcessFlow {
      */
     void parse_input(const char* string_matrix, const char* string_vector);
     
+    /**
+     * Checks if current process is master process.
+     * 
+     * @return true if master process, false otherwise.
+     */
     bool is_master();
+    
+    /**
+     * Initial check.
+     * 
+     * @param argc Number of command line arguments.
+     * @return true on success, false otherwise.
+     */
     bool check(int argc);
+    
+    /**
+     * Converts std::vector of floats to human-readable std::string.
+     * 
+     * @param input_vector Vector of floats to convert.
+     * @return Human-readable vector representation.
+     */
+    std::string vector_to_human(std::vector<float> &input_vector);
+    
+    /**
+     * Converts floats vector to vector of floats vectors.
+     * 
+     * @param array Floats array.
+     * @param count Number of elements in each vector.
+     * @param array Number of vectors.
+     * @return Vector of floats vectors.
+     */
+    std::vector< std::vector<float> > array_to_vector(float const *array, int count, int total);
     
     /**
      * Calculates data that will be send to each process.
      * 
-     * @param data_per_process Array with data count for each process.
-     * @param displacement Data offset for each process.
+     * @param rows_per_process Number of elements per process. Get it from ProcessFlow::get_rows_per_process().
+     * @param size Size of each element.
+     * @param data_per_process Output array where index is process number and value is data size.
+     * @param displacement Output array where index is process number and value is data offset.
      */
-    void displace_get(int *data_per_process, int *displacement);
+    void get_displace(int const *rows_per_process, int size, int *data_per_process, int *displacement);
     
     /**
-     * Calculates a scalar product of each input vector on vector to compare and returns array with results.
+     * Gets number of matrix rows that will handle each process.
      * 
-     * @param vectors Pointer to vectors.
-     * @param size Size of the data in vector variable.
-     * @param scalar_product Results array.
+     * @param rows_per_process Output array where index is process number and value is number of rows.
      */
-    void scalar_product(float const *vectors, int size, float *scalar_product);
+    void get_rows_per_process(int *rows_per_process);
+    
+    /**
+     * Calculates a scalar product of each input vector on vector to compare and returns products vector.
+     * 
+     * @param vectors Float vectors.
+     * @return Products vector.
+     */
+    std::vector<float> scalar_product(std::vector< std::vector<float> > &vectors);
     
 public:
     ProcessFlow ();
+    
     /**
-     * Controls master process.
+     * Start process flow.
      * 
      * @param argc Value from main() function.
      * @param argv Value from main() function.
