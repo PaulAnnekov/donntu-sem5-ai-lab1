@@ -27,10 +27,6 @@ bool ProcessFlow::check(int argc) {
         );
         return false;
     }
-    if (world_size<2) {
-        process_log("More then one process must be created");
-        return false;
-    }
 
     process_log("Number of processes: %d", world_size);
     
@@ -111,9 +107,11 @@ bool ProcessFlow::run(int argc, char** argv) {
         process_log("Matrix has %d rows and %d columns", matrix_rows, matrix_cols);
     }
     
-    MPI_Bcast(&matrix_rows, 1, MPI_INT, MASTER_RANK, MPI_COMM_WORLD);
-    MPI_Bcast(&matrix_cols, 1, MPI_INT, MASTER_RANK, MPI_COMM_WORLD);
+    int send_buffer[2]={matrix_rows, matrix_cols};
+    MPI_Bcast(&send_buffer, 2, MPI_INT, MASTER_RANK, MPI_COMM_WORLD);
     if (!is_master()) {
+        matrix_rows=send_buffer[0];
+        matrix_cols=send_buffer[1];
         compare_vector.resize(matrix_cols);
     }
     MPI_Bcast(&compare_vector[0], matrix_cols, MPI_FLOAT, MASTER_RANK, MPI_COMM_WORLD);
