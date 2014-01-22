@@ -48,6 +48,21 @@ This project was made for Lab 3 on Parallel Computing in the 5th semester.
 * Compiler: *wrapper of MPICH2 library (mpic++)*.
 
 
+MPI. Derived data types (mpi-derived-types)
+--------------------------------------------------------------------
+
+Distributed computing of task using derived data types for exchange. Calculates the dot product of the corresponding 
+rows and columns of a square matrix.
+
+This project was made for Lab 4 on Parallel Computing in the 5th semester.
+
+**Environment:**
+* OS: *Xubuntu 13.04*.
+* IDE: *Netbeans 7.4*.
+* MPI library: *MPICH2*.
+* Compiler: *wrapper of MPICH2 library (mpic++)*.
+
+
 AVR. Tone generation (avr-tone-generation)
 --------------------------------------------------------------------
 
