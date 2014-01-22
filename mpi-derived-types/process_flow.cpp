@@ -101,9 +101,11 @@ vector<float> ProcessFlow::matrix_prepare(vector< vector<float> > const &matrix)
 bool ProcessFlow::run(int argc, char** argv) {
     int rows_per_process[world_size],
         displacement[world_size];
+    double start_time;
     vector<float> send_data;
     
     if (is_master()) {
+        start_time=MPI_Wtime();
         if (!check(argc)) {
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         }
@@ -154,7 +156,9 @@ bool ProcessFlow::run(int argc, char** argv) {
             }
         }
         
-        process_log("The smallest scalar product is for row %d with value %f.", min, products[min]);
+        process_log("The smallest scalar product is for row %d with value %f", min, products[min]);
+        
+        process_log("Processed in %f seconds", MPI_Wtime()-start_time);
     }
 }
 
