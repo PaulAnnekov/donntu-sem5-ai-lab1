@@ -21,7 +21,7 @@ This project was made for Lab 2 on AI in the 5th semester.
 
 
 MPI. Blocking and nonblocking exchange (mpi-exchange)
---------------------------------------------------------------------
+-----------------------------------------------------
 
 Distributed computing of task using MPI with blocking and nonblocking exchange. Sorts each input vector and sums them.
 
@@ -35,7 +35,7 @@ This project was made for Lab 2 on Parallel Computing in the 5th semester.
 
 
 MPI. Collective operations of data exchange (mpi-collective)
---------------------------------------------------------------------
+------------------------------------------------------------
 
 Distributed computing of task using MPI with collective data exchange. Calculates the dot product of each row of the original matrix on the input vector and returns the minimum.
 
@@ -49,7 +49,7 @@ This project was made for Lab 3 on Parallel Computing in the 5th semester.
 
 
 MPI. Derived data types (mpi-derived-types)
---------------------------------------------------------------------
+-------------------------------------------
 
 Distributed computing of task using derived data types for exchange. Calculates the dot product of the corresponding 
 rows and columns of a square matrix.
@@ -64,7 +64,7 @@ This project was made for Lab 4 on Parallel Computing in the 5th semester.
 
 
 AVR. Tone generation (avr-tone-generation)
---------------------------------------------------------------------
+------------------------------------------
 
 Generation of sound with 800 Hz frequency and duration of 2 seconds for speaker on 6th bit of PORTB.
 
@@ -75,3 +75,11 @@ This project was made for Test on Microprocessor Control Systems in the 5th seme
 * IDE: *Atmel Studio 6*.
 * Language: *Assembler*.
 * Microcontroller: *ATmega88*.
+
+
+Mathematical modeling. Maintenance of ships in port (mathematical-modeling)
+---------------------------------------------------------------------------
+
+Mathematical modeling of maintenance of ships in port and output waiting time for ships of all types.
+
+This project was made for Coursework on Modeling of systems in the 5th semester.
