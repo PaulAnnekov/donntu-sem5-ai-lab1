@@ -5,7 +5,7 @@ List<String> symptoms = [];
 Map objects = {};
 
 /**
- * Ask questions and returns a list of symptoms.
+ * Asks questions and returns a list of symptoms.
  */
 List<int> askQuestions() {
   var acceptedSymptoms=[];
@@ -16,7 +16,7 @@ List<int> askQuestions() {
     var index = (symptomsCopy.length > 1) ? random.nextInt(symptomsCopy.length-1) : 0;
     print('Does this object has "${symptomsCopy[index]}" symptom (y/n)?');
     if (stdin.readLineSync() == 'y') {
-      acceptedSymptoms.add(index);
+      acceptedSymptoms.add(symptoms.indexOf(symptomsCopy[index]));
     }
     symptomsCopy.removeAt(index);
   }
@@ -35,7 +35,7 @@ checkSymptoms(List<int> chosenSymptoms) {
     while(chosenSymptoms.length < 2) {
       print('Enter one more symptom to describe this object:');
       symptoms.add(stdin.readLineSync());
-      chosenSymptoms.add(symptoms.length);
+      chosenSymptoms.add(symptoms.length-1);
     }
   } else {
     String objectName;
