@@ -19,6 +19,13 @@ Diagnose system based on the principle of confidence coefficient.
 
 This project was made for Lab 2 on AI in the 5th semester.
 
+Object identification. Based on symptoms (object-identification)
+--------------------------------------------------------------------
+
+Trainable system for identifying an object based on several characteristics.
+
+This project was made for Lab 2 on AI in the 5th semester.
+
 
 MPI. Blocking and nonblocking exchange (mpi-exchange)
 -----------------------------------------------------
