@@ -21,7 +21,7 @@ app.configure(function () {
     clientCss.addFile(__dirname + "/web/css/main.css");
     clientJs.addFile(__dirname + "/node_modules/jade/runtime.js");
     clientJs.addFile(jadeCompiler());
-    clientJs.addFile(__dirname + "/vendor/jquery/jquery.js");
+    clientJs.addFile(__dirname + "/vendor/jquery/dist/jquery.js");
     clientJs.addFile(__dirname + "/vendor/alertify.js/lib/alertify.js");
     clientJs.addFile(__dirname + "/vendor/bootstrap/dist/js/bootstrap.js");
     clientJs.addFile(__dirname + "/web/js/knowledge-base.js");

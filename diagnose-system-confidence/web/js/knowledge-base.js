@@ -1,3 +1,4 @@
+/*global $*/
 /*jslint browser: true*/
 
 /**
@@ -100,16 +101,23 @@ function Kb() {
 
         diagnoses.values[diagnosisId] = name;
         diagnoses.nextId++;
-        associations[diagnosisId] = [];
+        associations[diagnosisId] = {};
         saveToStorage();
 
         return diagnosisId;
     };
 
-    this.addSymptomsToDiagnosis = function (symptomIds, diagnosisId) {
-        var allSymptomIds = symptomIds.concat(associations[diagnosisId]);
+    /**
+     * Adds symptoms to diagnosis.
+     *
+     * @param {Object} symptoms Symptoms in the following format: <code>symptomId: {cm: 0.02, mm: 0.01}</code>.
+     * @param {Number} diagnosisId Diagnosis ID.
+     * @returns {Boolean} <tt>true</tt> on success, <tt>false</tt> on error.
+     */
+    this.addSymptomsToDiagnosis = function (symptoms, diagnosisId) {
+        var allSymptoms = $.extend({}, associations[diagnosisId], symptoms);
 
-        return this.setSymptomsToDiagnosis(allSymptomIds, diagnosisId);
+        return this.setSymptomsToDiagnosis(allSymptoms, diagnosisId);
     };
 
     /**
@@ -120,15 +128,17 @@ function Kb() {
      * @returns {boolean} <tt>true</tt> on success remove, <tt>false</tt> otherwise.
      */
     this.removeSymptomsFromDiagnosis = function (symptomIds, diagnosisId) {
-        if (!associations[diagnosisId].length) {
+        if ($.isEmptyObject(associations[diagnosisId])) {
             return false;
         }
 
-        var diagnosisSymptomIds = associations[diagnosisId].filter(function (symptomId) {
-            return symptomIds.indexOf(symptomId) < 0;
+        var diagnosisSymptoms = {};
+        $.extend(diagnosisSymptoms, associations[diagnosisId]);
+        symptomIds.forEach(function (symptomId) {
+            delete diagnosisSymptoms[symptomId];
         });
 
-        return this.setSymptomsToDiagnosis(diagnosisSymptomIds, diagnosisId);
+        return this.setSymptomsToDiagnosis(diagnosisSymptoms, diagnosisId);
     };
 
     /**
@@ -156,8 +166,7 @@ function Kb() {
      * @returns {Boolean} <tt>true</tt> on success, <tt>false</tt> otherwise.
      */
     this.removeSymptom = function (symptomId) {
-        var diagnosisId,
-            index;
+        var diagnosisId;
         symptomId = parseInt(symptomId, 10);
 
         if (!symptoms.values.hasOwnProperty(symptomId)) {
@@ -166,9 +175,9 @@ function Kb() {
 
         for (diagnosisId in associations) {
             if (associations.hasOwnProperty(diagnosisId)) {
-                index = associations[diagnosisId].indexOf(symptomId);
-                if (index >= 0) {
-                    associations[diagnosisId].splice(index, 1);
+                if (associations[diagnosisId].hasOwnProperty(symptomId)) {
+                    // TODO: Check all associations set before symptom remove.
+                    delete associations[diagnosisId][symptomId];
                 }
             }
         }
@@ -179,6 +188,53 @@ function Kb() {
         return true;
     };
 
+    this.setSymptomCm = function (diagnosisId, symptomId, cm) {
+        associations[diagnosisId][symptomId].cm = cm;
+        saveToStorage();
+    };
+
+    this.setSymptomMm = function (diagnosisId, symptomId, mm) {
+        associations[diagnosisId][symptomId].mm = mm;
+        saveToStorage();
+    };
+
+    this.calculateConfidenceCoefficients = function (symptomIds) {
+        var diagnosisId,
+            report = {},
+            symptomId,
+            symptomsCount = Object.getOwnPropertyNames(symptoms.values).length;
+
+        for (diagnosisId in associations) {
+            if (!associations.hasOwnProperty(diagnosisId)) {
+                continue;
+            }
+
+            report[diagnosisId] = {
+                cm: 0,
+                mm: 0,
+                cc: 0
+            };
+
+            for (symptomId in associations[diagnosisId]) {
+                if (!associations[diagnosisId].hasOwnProperty(symptomId)) {
+                    continue;
+                }
+
+                symptomId = parseInt(symptomId, 10);
+                if (symptomIds.indexOf(symptomId) >= 0) {
+                    report[diagnosisId].cm += associations[diagnosisId][symptomId].cm;
+                    report[diagnosisId].mm += associations[diagnosisId][symptomId].mm;
+                }
+            }
+
+            report[diagnosisId].cm /= symptomsCount;
+            report[diagnosisId].mm /= symptomsCount;
+            report[diagnosisId].cc = report[diagnosisId].cm - report[diagnosisId].mm;
+        }
+
+        return report;
+    };
+
     /**
      * Search diagnosis by symptoms IDs.
      *
@@ -186,11 +242,15 @@ function Kb() {
      * @returns {Number|Boolean} Diagnosis ID or <tt>false</tt> if nothing found.
      */
     this.searchDiagnosis = function (symptomIds) {
-        var diagnosisId;
+        var diagnosisId,
+            diagnosisSymptomIds;
 
         for (diagnosisId in diagnoses.values) {
             if (diagnoses.values.hasOwnProperty(diagnosisId)) {
-                if (checkSubset(symptomIds, associations[diagnosisId], true)) {
+                diagnosisSymptomIds = Object.getOwnPropertyNames(associations[diagnosisId]).map(function (x) {
+                    return parseInt(x, 10);
+                });
+                if (checkSubset(symptomIds, diagnosisSymptomIds, true)) {
                     return diagnosisId;
                 }
             }
@@ -215,11 +275,11 @@ function Kb() {
         return associations;
     };
 
-    this.setSymptomsToDiagnosis = function (symptomIds, diagnosisId) {
+    this.setSymptomsToDiagnosis = function (symptoms, diagnosisId) {
         var key,
             value;
 
-        if (symptomIds.length) {
+        if (!$.isEmptyObject(symptoms)) {
             // Check symptoms set entry.
             for (key in associations) {
                 if (associations.hasOwnProperty(key)) {
@@ -227,8 +287,8 @@ function Kb() {
                     key = parseInt(key, 10);
 
                     // Do not check diagnosis which symptoms we will replace and diagnoses without symptoms.
-                    if (key !== diagnosisId && value.length) {
-                        if (checkSubset(value, symptomIds)) {
+                    if (key !== diagnosisId && !$.isEmptyObject(value)) {
+                        if (checkSubset(Object.getOwnPropertyNames(value), Object.getOwnPropertyNames(symptoms))) {
                             return false;
                         }
                     }
@@ -236,7 +296,7 @@ function Kb() {
             }
         }
 
-        associations[diagnosisId] = symptomIds;
+        associations[diagnosisId] = symptoms;
         saveToStorage();
 
         return true;

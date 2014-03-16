@@ -12,5 +12,10 @@ table.table.table-striped
                     div.header= symptom
                         button.close(type="button", aria-hidden="true", title="Remove") &times;
                 each diagnosis, diagnosisId in diagnoses
-                    td
-                        input(type="checkbox", data-symptom-id="#{symptomId}", data-diagnosis-id="#{diagnosisId}", checked=associations[diagnosisId].indexOf(parseInt(symptomId)) >= 0)
+                    td(data-symptom-id="#{symptomId}", data-diagnosis-id="#{diagnosisId}")
+                        input(type="checkbox", checked=associations[diagnosisId].hasOwnProperty(parseInt(symptomId)))
+                        div(class="row")
+                            div(class="col-lg-6")
+                                input(type="number", class="form-control symptom-cm", min="0", max="1", step="0.01", placeholder="CM", title="Confidence Measure", value=associations[diagnosisId].hasOwnProperty(parseInt(symptomId)) ? associations[diagnosisId][symptomId].cm : 0.00)
+                            div(class="col-lg-6")
+                                input(type="number", class="form-control symptom-mm", min="0", max="1", step="0.01", placeholder="MM", title="Mistrust Measure", value=associations[diagnosisId].hasOwnProperty(parseInt(symptomId)) ? associations[diagnosisId][symptomId].mm : 0.00)

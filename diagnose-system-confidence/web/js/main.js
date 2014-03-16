@@ -29,6 +29,8 @@ $(document).ready(function () {
 
         $symptoms.change(function () {
             var symptomIds = [],
+                report,
+                reportText = '',
                 diagnosisId;
 
             $('input[type="checkbox"]', $symptoms).each(function () {
@@ -38,10 +40,8 @@ $(document).ready(function () {
                 }
             });
 
-            $message.removeClass('alert-success alert-info alert-warning');
-
             if (!symptomIds.length) {
-                $message.addClass('alert-info').text('Choose symptoms.');
+                $message.text('Choose symptoms.');
                 return;
             }
 
@@ -49,14 +49,26 @@ $(document).ready(function () {
                 symptomIds[index] = parseInt(value, 10);
             });
 
-            diagnosisId = kb.searchDiagnosis(symptomIds);
+            report = kb.calculateConfidenceCoefficients(symptomIds);
+            for (diagnosisId in report) {
+                if (!report.hasOwnProperty(diagnosisId)) {
+                    continue;
+                }
 
-            if (diagnosisId === false) {
-                $message.addClass('alert-warning').text('Diagnosis with these symptoms was not found.');
-                return;
+                reportText += getTemplate('diagnosis-report', {
+                    name: kb.getDiagnosisName(diagnosisId),
+                    cm: report[diagnosisId].cm.toFixed(2),
+                    mm: report[diagnosisId].mm.toFixed(2),
+                    cc: report[diagnosisId].cc.toFixed(2)
+                });
+
+                /*reportText += 'Diagnose: ' + kb.getDiagnosisName(diagnosisId) + '.<br />'
+                            + 'CM (Confidence Measure): ' + report[diagnosisId].cm.toFixed(2) + '.<br />'
+                            + 'MM (Mistrust Measure): ' + report[diagnosisId].mm.toFixed(2) + '.<br />'
+                            + 'CC (Confidence Coefficient): ' + report[diagnosisId].cc.toFixed(2) + '.<br /><br />';*/
             }
 
-            $message.addClass('alert-success').text('Diagnosis: ' + kb.getDiagnosisName(diagnosisId));
+            $message.html(reportText);
         });
     }
 
@@ -92,12 +104,18 @@ $(document).ready(function () {
             // Modify list of diagnosis' symptoms.
             $('input[type="checkbox"]', $kbTable).change(function () {
                 var $checkbox = $(this),
-                    diagnosisId = parseInt($checkbox.attr('data-diagnosis-id'), 10),
-                    symptomId = parseInt($checkbox.attr('data-symptom-id'), 10),
-                    success;
+                    $cell = $checkbox.closest('td'),
+                    diagnosisId = parseInt($cell.attr('data-diagnosis-id'), 10),
+                    symptomId = parseInt($cell.attr('data-symptom-id'), 10),
+                    success,
+                    symptoms = {};
 
                 if ($checkbox.prop('checked')) {
-                    success = kb.addSymptomsToDiagnosis([symptomId], diagnosisId);
+                    symptoms[symptomId] = {
+                        cm: 0.00,
+                        mm: 0.00
+                    };
+                    success = kb.addSymptomsToDiagnosis(symptoms, diagnosisId);
                 } else {
                     success = kb.removeSymptomsFromDiagnosis([symptomId], diagnosisId);
                 }
@@ -107,6 +125,20 @@ $(document).ready(function () {
                     $checkbox.prop('checked', !$checkbox.prop('checked'));
                 } else {
                     alertify.success('Symptoms list updated.');
+                }
+            });
+
+            // Update symptom CM or MM.
+            $('input.symptom-cm, input.symptom-mm', $kbTable).change(function () {
+                var $input = $(this),
+                    $cell = $input.closest('td'),
+                    diagnosisId = parseInt($cell.attr('data-diagnosis-id'), 10),
+                    symptomId = parseInt($cell.attr('data-symptom-id'), 10);
+
+                if ($input.hasClass('symptom-cm')) {
+                    kb.setSymptomCm(diagnosisId, symptomId, parseFloat($input.val()));
+                } else {
+                    kb.setSymptomMm(diagnosisId, symptomId, parseFloat($input.val()));
                 }
             });
 
@@ -141,6 +173,7 @@ $(document).ready(function () {
         kbTableRerender();
         fillListWithSymptoms();
 
+        // Add symptom.
         $('button#add-symptom', $form).click(function () {
             var $symptom = $('input#symptom', $form),
                 symptom = $symptom.val();
@@ -162,6 +195,7 @@ $(document).ready(function () {
             kbTableRerender();
         });
 
+        // Add diagnosis.
         $form.submit(function (e) {
             e.preventDefault();
 
@@ -169,7 +203,8 @@ $(document).ready(function () {
                 $symptoms = $('select#symptoms', $form),
                 diagnosis = $diagnosis.val(),
                 diagnosisId,
-                symptomIds = $symptoms.val();
+                symptomIds = $symptoms.val(),
+                symptoms = {};
 
             if (!symptomIds) {
                 alertify.error('You must select at least one symptom.');
@@ -177,7 +212,10 @@ $(document).ready(function () {
             }
 
             $.each(symptomIds, function (index, value) {
-                symptomIds[index] = parseInt(value, 10);
+                symptoms[parseInt(value, 10)] = {
+                    cm: 0.00,
+                    mm: 0.00
+                };
             });
 
             if (kb.isDiagnosisExists(diagnosis)) {
@@ -188,7 +226,7 @@ $(document).ready(function () {
             diagnosisId = kb.addDiagnosis(diagnosis);
             kbTableRerender();
 
-            if (!kb.addSymptomsToDiagnosis(symptomIds, diagnosisId)) {
+            if (!kb.addSymptomsToDiagnosis(symptoms, diagnosisId)) {
                 alertify.error('Symptoms set is a subset of symptoms from another diagnosis.');
                 return;
             }
