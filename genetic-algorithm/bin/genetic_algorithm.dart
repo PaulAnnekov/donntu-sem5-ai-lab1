@@ -1,5 +1,7 @@
 import "dart:math";
 
+// TODO: Update README.md.
+
 /**
  * Implements genetic algorithm that finds the minimum of `(x – 10) ^ 2 + 20`
  * function.
@@ -25,16 +27,72 @@ import "dart:math";
 class GA {
   List<num> _population = [];
 
-  _initPopulation(int chromosomes) {
+  static const maxX = 1 << 16;
+
+  /**
+   * Initializes population of [number] chromosomes.
+   */
+  _initPopulation(int number) {
     var random = new Random();
-    for (var i = 0; i < chromosomes; i++) {
-      _population.add(random.nextInt(1 << 32));
-      print(_population.last);
+    for (var i = 0; i < number; i++) {
+      _population.add(random.nextInt(maxX));
     }
   }
 
-  GA.start([int chromosomes = 4]) {
+  /**
+   * Calculates function result from passed [x] and returns it.
+   */
+  _f(num x) {
+    return pow((x - 10), 2) + 20;
+  }
+
+  /**
+   * Randomly selects chromosomes and updates population.
+   */
+  _selection() {
+    var fitnesses = [],
+        probabilities = [],
+        totalFitness = 0,
+        newPopulation = [];
+
+    _population.forEach((chromosome) => fitnesses.add(_f(chromosome)));
+    fitnesses.forEach((fitness) => totalFitness += fitness);
+    fitnesses.forEach((fitness) => probabilities.add(fitness / totalFitness));
+
+    for (var i = 0; i < _population.length; i++) {
+      var random = new Random().nextDouble(),
+          current = 0;
+      for (var j = 0; j < probabilities.length; j++) {
+        if (random < current + probabilities[j]) {
+          newPopulation.add(_population[j]);
+          break;
+        }
+
+        current += probabilities[j];
+      }
+    }
+
+    _population = newPopulation;
+  }
+
+  /**
+   * Makes crossover and updates population.
+   */
+  _crossover() {
+
+  }
+
+  GA.start([int chromosomes = 4, int steps = 20]) {
     _initPopulation(chromosomes);
+
+    var stepsLeft = steps;
+    while (steps > 0) {
+      _selection();
+
+
+      steps--;
+    }
+
   }
 }
 
