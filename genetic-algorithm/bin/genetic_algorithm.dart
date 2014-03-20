@@ -1,7 +1,5 @@
 import "dart:math";
 
-// TODO: Update README.md.
-
 /**
  * Implements genetic algorithm that finds the minimum of `(x – 10) ^ 2 + 20`
  * function.
@@ -25,15 +23,18 @@ import "dart:math";
  * Repeat algorithm until some maximum iterations number.
  */
 class GA {
-  List<num> _population = [];
+  List<int> _population = [];
 
-  static const maxX = 1 << 16;
+  static const xBits = 16;
+
+  static const maxX = 1 << xBits;
+
+  final random = new Random();
 
   /**
    * Initializes population of [number] chromosomes.
    */
   _initPopulation(int number) {
-    var random = new Random();
     for (var i = 0; i < number; i++) {
       _population.add(random.nextInt(maxX));
     }
@@ -60,10 +61,10 @@ class GA {
     fitnesses.forEach((fitness) => probabilities.add(fitness / totalFitness));
 
     for (var i = 0; i < _population.length; i++) {
-      var random = new Random().nextDouble(),
+      var test = random.nextDouble(),
           current = 0;
       for (var j = 0; j < probabilities.length; j++) {
-        if (random < current + probabilities[j]) {
+        if (test < current + probabilities[j]) {
           newPopulation.add(_population[j]);
           break;
         }
@@ -79,7 +80,38 @@ class GA {
    * Makes crossover and updates population.
    */
   _crossover() {
+    for (var i = 0; i < _population.length; i+=2) {
+      var point = random.nextInt(xBits),
+          chromosomeBinary1 = _population[i].toRadixString(2),
+          chromosomeBinary2 = _population[i + 1].toRadixString(2),
+          chromosome1 = chromosomeBinary1.substring(0, point + 1) +
+              chromosomeBinary2.substring(point + 1),
+          chromosome2 = chromosomeBinary2.substring(0, point + 1) +
+              chromosomeBinary1.substring(point + 1);
 
+      _population[i] = int.parse(chromosome1, radix: 2);
+      _population[i+1] = int.parse(chromosome2, radix: 2);
+    }
+  }
+
+  /**
+   * Makes random mutation of random bit of each chromosome with random
+   * probability.
+   */
+  _mutation() {
+    for (var i = 0; i < _population.length; i++) {
+      if (random.nextInt(2) == 0) {
+        continue;
+      }
+
+      var chromosomeBinary = _population[i].toRadixString(2),
+          position = random.nextInt(chromosomeBinary.length);
+      chromosomeBinary = chromosomeBinary.substring(0,position) +
+          (chromosomeBinary[position].compareTo("0") == 0 ? "1" : "0") +
+              chromosomeBinary.substring(position + 1);
+
+      _population[i]=int.parse(chromosomeBinary, radix: 2);
+    }
   }
 
   GA.start([int chromosomes = 4, int steps = 20]) {
@@ -88,11 +120,11 @@ class GA {
     var stepsLeft = steps;
     while (steps > 0) {
       _selection();
-
+      _crossover();
+      _mutation();
 
       steps--;
     }
-
   }
 }
 
