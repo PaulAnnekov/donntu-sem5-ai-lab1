@@ -17,10 +17,11 @@ function Kb() {
         diagnoses = {
             nextId: 1,
             values: {}
-        };
+        },
+        KB_ALIAS = 'kb-confidence';
 
     function loadFromStorage() {
-        var kbJson = localStorage.getItem('kb'),
+        var kbJson = localStorage.getItem(KB_ALIAS),
             kb;
         if (!kbJson) {
             return;
@@ -40,7 +41,7 @@ function Kb() {
             diagnoses: diagnoses
         };
 
-        localStorage.setItem('kb', JSON.stringify(kb));
+        localStorage.setItem(KB_ALIAS, JSON.stringify(kb));
     }
 
     /**
