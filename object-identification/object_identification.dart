@@ -29,7 +29,6 @@ List<int> askQuestions() {
  */
 checkSymptoms(List<int> chosenSymptoms) {
   var isPromtObject=true;
-  print('$chosenSymptoms $symptoms $objects');
   if (chosenSymptoms.length < 2) {
     print('Not enough symptoms to determine object. Add missing symptoms and name the object.');
     while(chosenSymptoms.length < 2) {
