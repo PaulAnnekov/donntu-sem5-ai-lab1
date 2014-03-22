@@ -10,9 +10,7 @@ import "package:genetic_algorithm/src/selection.dart";
 class GA {
   List<int> _population = [];
 
-  static const xBits = 16;
-
-  static const maxX = 1 << xBits;
+  static const maxX = 1 << 16;
 
   final random = new Random();
 
