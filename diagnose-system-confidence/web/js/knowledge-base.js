@@ -167,7 +167,8 @@ function Kb() {
      * @returns {Boolean} <tt>true</tt> on success, <tt>false</tt> otherwise.
      */
     this.removeSymptom = function (symptomId) {
-        var diagnosisId;
+        var diagnosisId,
+            is_success;
         symptomId = parseInt(symptomId, 10);
 
         if (!symptoms.values.hasOwnProperty(symptomId)) {
@@ -177,8 +178,11 @@ function Kb() {
         for (diagnosisId in associations) {
             if (associations.hasOwnProperty(diagnosisId)) {
                 if (associations[diagnosisId].hasOwnProperty(symptomId)) {
-                    // TODO: Check all associations set before symptom remove.
-                    delete associations[diagnosisId][symptomId];
+                    diagnosisId = parseInt(diagnosisId, 10);
+                    is_success = this.removeSymptomsFromDiagnosis([symptomId], diagnosisId);
+                    if (!is_success) {
+                        return false;
+                    }
                 }
             }
         }
@@ -201,7 +205,8 @@ function Kb() {
 
     this.calculateConfidenceCoefficients = function (symptomIds) {
         var diagnosisId,
-            report = {},
+            diagnosis,
+            report = [],
             symptomId,
             symptomsCount = Object.getOwnPropertyNames(symptoms.values).length;
 
@@ -210,7 +215,8 @@ function Kb() {
                 continue;
             }
 
-            report[diagnosisId] = {
+            diagnosis = {
+                diagnosisId: diagnosisId,
                 cm: 0,
                 mm: 0,
                 cc: 0
@@ -223,15 +229,22 @@ function Kb() {
 
                 symptomId = parseInt(symptomId, 10);
                 if (symptomIds.indexOf(symptomId) >= 0) {
-                    report[diagnosisId].cm += associations[diagnosisId][symptomId].cm;
-                    report[diagnosisId].mm += associations[diagnosisId][symptomId].mm;
+                    diagnosis.cm += associations[diagnosisId][symptomId].cm;
+                    diagnosis.mm += associations[diagnosisId][symptomId].mm;
                 }
             }
 
-            report[diagnosisId].cm /= symptomsCount;
-            report[diagnosisId].mm /= symptomsCount;
-            report[diagnosisId].cc = report[diagnosisId].cm - report[diagnosisId].mm;
+            diagnosis.cm /= symptomsCount;
+            diagnosis.mm /= symptomsCount;
+            diagnosis.cc = diagnosis.cm - diagnosis.mm;
+
+            report.push(diagnosis);
         }
+
+        // Sort in descending order.
+        report.sort(function (diagnosis1, diagnosis2) {
+            return diagnosis2.cc - diagnosis1.cc;
+        });
 
         return report;
     };

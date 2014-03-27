@@ -31,7 +31,7 @@ $(document).ready(function () {
             var symptomIds = [],
                 report,
                 reportText = '',
-                diagnosisId;
+                i;
 
             $('input[type="checkbox"]', $symptoms).each(function () {
                 var $symptom = $(this);
@@ -50,22 +50,13 @@ $(document).ready(function () {
             });
 
             report = kb.calculateConfidenceCoefficients(symptomIds);
-            for (diagnosisId in report) {
-                if (!report.hasOwnProperty(diagnosisId)) {
-                    continue;
-                }
-
+            for (i = 0; i < report.length; i++) {
                 reportText += getTemplate('diagnosis-report', {
-                    name: kb.getDiagnosisName(diagnosisId),
-                    cm: report[diagnosisId].cm.toFixed(2),
-                    mm: report[diagnosisId].mm.toFixed(2),
-                    cc: report[diagnosisId].cc.toFixed(2)
+                    name: kb.getDiagnosisName(report[i].diagnosisId),
+                    cm: report[i].cm.toFixed(2),
+                    mm: report[i].mm.toFixed(2),
+                    cc: report[i].cc.toFixed(2)
                 });
-
-                /*reportText += 'Diagnose: ' + kb.getDiagnosisName(diagnosisId) + '.<br />'
-                            + 'CM (Confidence Measure): ' + report[diagnosisId].cm.toFixed(2) + '.<br />'
-                            + 'MM (Mistrust Measure): ' + report[diagnosisId].mm.toFixed(2) + '.<br />'
-                            + 'CC (Confidence Coefficient): ' + report[diagnosisId].cc.toFixed(2) + '.<br /><br />';*/
             }
 
             $message.html(reportText);
@@ -161,11 +152,17 @@ $(document).ready(function () {
                     symptomId = parseInt($row.attr('data-symptom-id'), 10);
 
                 alertify.confirm("Do you really want to remove this symptom?", function (e) {
-                    if (e) {
-                        kb.removeSymptom(symptomId);
-                        fillListWithSymptoms();
-                        kbTableRerender();
+                    if (!e) {
+                        return;
                     }
+
+                    if (kb.removeSymptom(symptomId)) {
+                        fillListWithSymptoms();
+                        alertify.success('Symptom was removed.');
+                    } else {
+                        alertify.error('A new set of symptoms is a subset of the symptoms of another diagnosis, or vice versa.');
+                    }
+                    kbTableRerender();
                 });
             });
         }
