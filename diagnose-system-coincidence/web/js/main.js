@@ -129,11 +129,17 @@ $(document).ready(function () {
                     symptomId = parseInt($row.attr('data-symptom-id'), 10);
 
                 alertify.confirm("Do you really want to remove this symptom?", function (e) {
-                    if (e) {
-                        kb.removeSymptom(symptomId);
-                        fillListWithSymptoms();
-                        kbTableRerender();
+                    if (!e) {
+                        return;
                     }
+
+                    if (kb.removeSymptom(symptomId)) {
+                        fillListWithSymptoms();
+                        alertify.success('Symptom was removed.');
+                    } else {
+                        alertify.error('A new set of symptoms is a subset of the symptoms of another diagnosis, or vice versa.');
+                    }
+                    kbTableRerender();
                 });
             });
         }
