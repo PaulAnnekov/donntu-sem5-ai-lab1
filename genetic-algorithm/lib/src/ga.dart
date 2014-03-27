@@ -1,6 +1,7 @@
 library ga;
 
 import "dart:math";
+import "dart:io";
 import "package:genetic_algorithm/src/selection.dart";
 
 /**
@@ -8,9 +9,21 @@ import "package:genetic_algorithm/src/selection.dart";
  * function.
  */
 class GA {
-  List<int> _population = [];
+  List<double> _population = [];
 
-  static const maxX = 1 << 16;
+  /**
+   * Maximum number of fractional digits for each chromosome.
+   */
+  static const accuracyDec = 2;
+
+  static const accuracyBin = 7;
+
+  /**
+   * Number of places in double type.
+   */
+  static const doublePlaces = 19;
+
+  static const maxInt = 16;
 
   final random = new Random();
 
@@ -23,14 +36,15 @@ class GA {
    */
   _initPopulation(int number) {
     for (var i = 0; i < number; i++) {
-      _population.add(random.nextInt(maxX));
+      _population.add(random.nextInt(1 << maxInt) +
+          random.nextInt(pow(10, accuracyDec)) / pow(10, accuracyDec));
     }
   }
 
   /**
    * Calculates function result from passed [x] and returns it.
    */
-  _f(num x) {
+  double _f(double x) {
     return pow((x - 10), 2) + 20;
   }
 
@@ -38,7 +52,7 @@ class GA {
    * Selects the most fit [number] chromosomes from [population] and returns
    * them.
    */
-  List<int> _selection(List<int> population, int number) {
+  List<double> _selection(List<double> population, int number) {
     var fitnesses = [],
         newPopulation = [];
 
@@ -52,12 +66,12 @@ class GA {
   /**
    * Makes crossover on [population] and returns updated.
    */
-  _crossover(List<int> population) {
+  _crossover(List<double> population) {
     var updatedPopulation = [];
 
     for (var i = 0; i < population.length; i+=2) {
-      var chromosomeBinary1 = population[i].toRadixString(2),
-          chromosomeBinary2 = population[i + 1].toRadixString(2);
+      var chromosomeBinary1 = _doubleToBinary(population[i]),
+          chromosomeBinary2 = _doubleToBinary(population[i + 1]);
 
       var point;
       if (chromosomeBinary1.length < chromosomeBinary2.length) {
@@ -71,8 +85,8 @@ class GA {
           chromosome2 = chromosomeBinary2.substring(0, point + 1) +
               chromosomeBinary1.substring(point + 1);
 
-      updatedPopulation.add(int.parse(chromosome1, radix: 2));
-      updatedPopulation.add(int.parse(chromosome2, radix: 2));
+      updatedPopulation.add(_binaryToDouble(chromosome1));
+      updatedPopulation.add(_binaryToDouble(chromosome2));
     }
 
     return updatedPopulation;
@@ -82,7 +96,7 @@ class GA {
    * Makes random mutation of random bit of each chromosome with random
    * probability in [population] and returns updated.
    */
-  _mutation(List<int> population) {
+  _mutation(List<double> population) {
     var updatedPopulation = [];
 
     for (var i = 0; i < population.length; i++) {
@@ -91,29 +105,66 @@ class GA {
         continue;
       }
 
-      var chromosomeBinary = population[i].toRadixString(2),
+      var chromosomeBinary = _doubleToBinary(population[i]),
           position = random.nextInt(chromosomeBinary.length);
       // I haven't found easier way to replace single character in string :(.
       chromosomeBinary = chromosomeBinary.substring(0,position) +
           (chromosomeBinary[position].compareTo("0") == 0 ? "1" : "0") +
               chromosomeBinary.substring(position + 1);
 
-      updatedPopulation.add(int.parse(chromosomeBinary, radix: 2));
+      updatedPopulation.add(_binaryToDouble(chromosomeBinary));
     }
 
     return updatedPopulation;
   }
 
-  _logPopulation(String description, List<int> population) {
+  String _doubleToBinary(double chromosome) {
+    int integral = chromosome.truncate();
+    var fractional = (chromosome - integral) * pow(10, accuracyDec);
+    var fractionalBinary = fractional.round().toRadixString(2);
+    while (fractionalBinary.length < accuracyBin) {
+      fractionalBinary = "0" + fractionalBinary;
+    }
+
+    return integral.toRadixString(2) + fractionalBinary;
+  }
+
+  double _binaryToDouble(String binary) {
+    var integral = binary.substring(0, binary.length - accuracyBin);
+    var fractional = binary.substring(binary.length - accuracyBin);
+
+
+    return int.parse(integral, radix: 2) +
+        int.parse(fractional, radix: 2) / pow(10, accuracyDec);
+  }
+
+  _logPopulation(String description, List<double> population) {
     print(description);
     population.forEach((chromosome) {
-      print(chromosome.toString() + ' (' + chromosome.toRadixString(2) + ')');
+      print('c: ' + chromosome.toString() + ' (' + _doubleToBinary(chromosome) +
+          '), f: ' + _f(chromosome).toString());
     });
     print('');
   }
 
   _logStep() {
     print('Current step: $_currentStep');
+  }
+
+  _log(String text) {
+    print(text);
+  }
+
+  double _getBestChromosome() {
+    var best = _population.first;
+
+    _population.forEach((chromosome) {
+      if (_f(chromosome) < _f(best)) {
+        best = chromosome;
+      }
+    });
+
+    return best;
   }
 
   GA.start([int chromosomes = 4, int steps = 20]) {
@@ -125,12 +176,14 @@ class GA {
     selectionAlgorothm = new SelectionAlgorithm();
 
     _initPopulation(chromosomes);
+    _logPopulation("Initial population", _population);
+
+    var bestChromosomeEver = _population.first;
 
     while (_currentStep < steps) {
       _currentStep++;
 
       _logStep();
-      _logPopulation("Initial population", tempPopulation);
 
       tempPopulation = _selection(_population, _population.length);
       _logPopulation("Selection", tempPopulation);
@@ -143,8 +196,17 @@ class GA {
 
       tempPopulation.addAll(_population);
       _population = _selection(tempPopulation, _population.length);
-    }
+      _logPopulation("Step result", _population);
 
-    _logPopulation("Result", tempPopulation);
+      var bestChromosome = _getBestChromosome();
+      if (_f(bestChromosome) < _f(bestChromosomeEver)) {
+        bestChromosomeEver = bestChromosome;
+      }
+
+      _log("Best chromosome in this step: " + bestChromosome.toString());
+      _log("Best chromosome ever: " + bestChromosomeEver.toString());
+
+      stdin.readLineSync();
+    }
   }
 }

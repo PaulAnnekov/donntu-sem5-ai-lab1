@@ -7,13 +7,17 @@ abstract class SelectionAlgorithm {
     return new TournamentSelection();
   }
 
-  List<int> select(List<int> fitnesses, int number, [bool is_max = true]);
+  /**
+   * Selects the most fit [number] chromosomes from using [fitnesses] and
+   * returns a list with fitness keys.
+   */
+  List<double> select(List<double> fitnesses, int number, [bool is_max = true]);
 }
 
 class RouletteWheelSelection implements SelectionAlgorithm {
   Random random = new Random();
 
-  List<int> select(List<int> fitnesses, int number,  [bool is_max = true]) {
+  List<double> select(List<double> fitnesses, int number,  [bool is_max = true]) {
     if (!is_max) {
       throw new Exception(
           "Selection by the lower fitness has not been implemented yet.");
@@ -47,12 +51,12 @@ class RouletteWheelSelection implements SelectionAlgorithm {
 class TournamentSelection implements SelectionAlgorithm {
   Random random = new Random();
 
-  List<int> select(List<int> fitnesses, int number, [bool is_max = true]) {
+  List<double> select(List<double> fitnesses, int number, [bool is_max = true]) {
     var selected = [];
 
     for (var i = 0; i < number; i++) {
       // Set subset size from 2 to population size chromosomes.
-      var size = random.nextInt(fitnesses.length - 1) + 2,
+      var size = 2,//random.nextInt(fitnesses.length - 1) + 2,
           chosen,
           subset = [];
 
