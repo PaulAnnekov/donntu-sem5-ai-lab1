@@ -157,7 +157,8 @@ function Kb() {
      * @returns {Boolean} <tt>true</tt> on success, <tt>false</tt> otherwise.
      */
     this.removeSymptom = function (symptomId) {
-        var diagnosisId;
+        var diagnosisId,
+            is_success;
         symptomId = parseInt(symptomId, 10);
 
         if (!symptoms.values.hasOwnProperty(symptomId)) {
@@ -167,7 +168,7 @@ function Kb() {
         for (diagnosisId in associations) {
             if (associations.hasOwnProperty(diagnosisId)) {
                 diagnosisId = parseInt(diagnosisId, 10);
-                var is_success = this.removeSymptomsFromDiagnosis([symptomId],diagnosisId);
+                is_success = this.removeSymptomsFromDiagnosis([symptomId], diagnosisId);
                 if (!is_success) {
                     return false;
                 }
