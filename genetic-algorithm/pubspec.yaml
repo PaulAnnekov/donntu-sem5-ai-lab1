@@ -1,4 +1,4 @@
 name: genetic_algorithm
 description: Finding the minimum of a function using genetic algorithm
-#dev_dependencies:
-#  unittest: any
+dependencies:
+  args: any

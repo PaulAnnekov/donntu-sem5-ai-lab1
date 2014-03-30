@@ -2,7 +2,7 @@ library ga;
 
 import "dart:math";
 import "dart:io";
-import "package:genetic_algorithm/src/selection.dart";
+import "package:genetic_algorithm/selection.dart";
 
 /**
  * Implements genetic algorithm that finds the minimum of `(x – 10) ^ 2 + 20`
@@ -30,6 +30,8 @@ class GA {
   int _currentStep = 0;
 
   SelectionAlgorithm selectionAlgorothm;
+
+  Map<String, dynamic> args;
 
   /**
    * Initializes population of [number] chromosomes.
@@ -70,15 +72,27 @@ class GA {
     var updatedPopulation = [];
 
     for (var i = 0; i < population.length; i+=2) {
+      /*if (random.nextDouble() > args['crossover']) {
+        print('no crossover between ' + i.toString() + ' and ' + (i + 1).toString());
+        updatedPopulation.add(population[i]);
+        updatedPopulation.add(population[i + 1]);
+        continue;
+      }*/
+
       var chromosomeBinary1 = _doubleToBinary(population[i]),
           chromosomeBinary2 = _doubleToBinary(population[i + 1]);
 
-      var point;
+      print("crossover of " + population[i].toString() + " and " + population[i + 1].toString());
+
       if (chromosomeBinary1.length < chromosomeBinary2.length) {
-        point = random.nextInt(chromosomeBinary1.length);
-      } else {
-        point = random.nextInt(chromosomeBinary2.length);
+        chromosomeBinary1 = _padZeros(chromosomeBinary1, chromosomeBinary2.length);
+      } else if (chromosomeBinary1.length > chromosomeBinary2.length) {
+        chromosomeBinary2 = _padZeros(chromosomeBinary2, chromosomeBinary1.length);
       }
+
+      var point = random.nextInt(chromosomeBinary1.length);
+
+      print("point: " + point.toString());
 
       var chromosome1 = chromosomeBinary1.substring(0, point + 1) +
               chromosomeBinary2.substring(point + 1),
@@ -100,7 +114,8 @@ class GA {
     var updatedPopulation = [];
 
     for (var i = 0; i < population.length; i++) {
-      if (random.nextInt(2) == 0) {
+      var c = random.nextDouble();
+      if (c > args['mutation']) {
         updatedPopulation.add(population[i]);
         continue;
       }
@@ -118,13 +133,21 @@ class GA {
     return updatedPopulation;
   }
 
+  String _padZeros(String input, int length) {
+    var output = input;
+
+    while (output.length < length) {
+      output = "0" + output;
+    }
+
+    return output;
+  }
+
   String _doubleToBinary(double chromosome) {
     int integral = chromosome.truncate();
     var fractional = (chromosome - integral) * pow(10, accuracyDec);
     var fractionalBinary = fractional.round().toRadixString(2);
-    while (fractionalBinary.length < accuracyBin) {
-      fractionalBinary = "0" + fractionalBinary;
-    }
+    fractionalBinary = _padZeros(fractionalBinary, accuracyBin);
 
     return integral.toRadixString(2) + fractionalBinary;
   }
@@ -167,20 +190,28 @@ class GA {
     return best;
   }
 
-  GA.start([int chromosomes = 4, int steps = 20]) {
-    if (!chromosomes.isEven)
+  _setOptions() {
+
+  }
+
+
+
+  GA.start(Map<String, dynamic> args) {
+    this.args = args;
+
+    if (!args['chromosomes'].isEven)
       throw new Exception("Number of chromosomes must be even");
 
     var tempPopulation = [];
 
     selectionAlgorothm = new SelectionAlgorithm();
 
-    _initPopulation(chromosomes);
+    _initPopulation(args['chromosomes']);
     _logPopulation("Initial population", _population);
 
     var bestChromosomeEver = _population.first;
 
-    while (_currentStep < steps) {
+    while (_currentStep < args['steps']) {
       _currentStep++;
 
       _logStep();
@@ -192,11 +223,11 @@ class GA {
       _logPopulation("Crossover", tempPopulation);
 
       tempPopulation = _mutation(tempPopulation);
-      _logPopulation("Mutation", tempPopulation);
+      _logPopulation("Step result (Mutation completed)", tempPopulation);
 
-      tempPopulation.addAll(_population);
-      _population = _selection(tempPopulation, _population.length);
-      _logPopulation("Step result", _population);
+     // tempPopulation.addAll(_population);
+      //_population = _selection(tempPopulation, _population.length);
+      _population = tempPopulation;
 
       var bestChromosome = _getBestChromosome();
       if (_f(bestChromosome) < _f(bestChromosomeEver)) {
