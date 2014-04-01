@@ -3,7 +3,7 @@ import 'package:args/args.dart';
 
 void main(List<String> args) {
   var parser = new ArgParser();
-  parser.addOption('chromosomes', abbr: 'c', defaultsTo: '16'); // Chromosomes count.
+  parser.addOption('chromosomes', abbr: 'c', defaultsTo: '10'); // Chromosomes count.
   parser.addOption('steps', abbr: 's', defaultsTo: '40'); // Number of steps.
   parser.addOption('mutation', abbr: 'm', defaultsTo: '0.5'); // Mutation chance.
   //parser.addOption('crossover', abbr: 'r', defaultsTo: '0.6'); // Crossover chance.

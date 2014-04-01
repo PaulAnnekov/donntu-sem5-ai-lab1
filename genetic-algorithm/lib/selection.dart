@@ -5,7 +5,7 @@ import "dart:collection";
 
 abstract class SelectionAlgorithm {
   factory SelectionAlgorithm() {
-    return new TournamentSelection();
+    return new RangingSelection();
   }
 
   /**
@@ -19,18 +19,22 @@ class RouletteWheelSelection implements SelectionAlgorithm {
   Random random = new Random();
 
   List<double> select(List<double> fitnesses, int number,  [bool is_max = true]) {
-    if (!is_max) {
-      throw new Exception(
-          "Selection by the lower fitness has not been implemented yet.");
-    }
-
     var probabilities = [],
         totalFitness = 0,
         selected = [];
 
     fitnesses.forEach((fitness) => totalFitness += fitness);
-    fitnesses.forEach((fitness) =>
-        probabilities.add(fitness / totalFitness));
+    fitnesses.forEach((fitness) {
+      var probability = fitness / totalFitness;
+      print(probability);
+      if (is_max) {
+        probabilities.add(probability);
+      } else {
+        probabilities.add(1 / fitnesses.length - probability);
+      }
+    });
+
+    print(probabilities);
 
     for (var i = 0; i < number; i++) {
       var test = random.nextDouble(),
