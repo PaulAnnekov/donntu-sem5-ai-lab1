@@ -5,7 +5,7 @@ import "dart:collection";
 
 abstract class SelectionAlgorithm {
   factory SelectionAlgorithm() {
-    return new RangingSelection();
+    return new TournamentSelection();
   }
 
   /**
