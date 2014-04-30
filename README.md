@@ -99,3 +99,11 @@ Mathematical modeling. Maintenance of ships in port (mathematical-modeling)
 Mathematical modeling of maintenance of ships in port and output waiting time for ships of all types.
 
 This project was made for Coursework on Modeling of systems in the 5th semester.
+
+
+Password system (password_system)
+---------------------------------------------------------------------------
+
+Application that stores authorization data (login and hashed password) in DB encrypted by symmetric-key algorithm.
+
+This project was made for Lab 4 on Information security technologies in the 6th semester.
