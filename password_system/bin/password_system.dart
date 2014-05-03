@@ -1,33 +1,43 @@
 import "../lib/db.dart";
 import "dart:io";
 
-Db db;
-
 void main() {
-  db = new Db("key");
+  var key;
+  Db db = new Db();
 
-  stdout.writeln("Hi");
+  stdout.writeln("Simple password system (login data storage).\n");
 
-  var is_exit=false;
+  do {
+    stdout.writeln("Enter DB key:");
+    key = stdin.readLineSync();
+  } while (!db.init(key));
+
+  var is_exit = false;
   while (!is_exit) {
-    stdout.writeln("Write actions");
+    stdout.writeln(
+        "Write actions (add [user] [password], get [user], get_all, exit):");
 
     var action = stdin.readLineSync();
     var parts = action.split(' ');
 
-    switch(parts[0]) {
+    switch (parts[0]) {
       case 'add':
         db.addUser(parts[1], parts[2]);
         stdout.writeln('User "${parts[1]}" was added');
         break;
       case 'get':
-        stdout.writeln(db.getPassword(parts[1]));
+        var digest = db.getPassword(parts[1]);
+        if (digest == null) {
+          stdout.writeln('User "${parts[1]}" does not exist in DB');
+        } else {
+          stdout.writeln("${parts[1]}'s SHA-256 hashed password: " + digest);
+        }
         break;
       case 'get_all':
         stdout.writeln(db.getLoginData());
         break;
       case 'exit':
-        is_exit=true;
+        is_exit = true;
         break;
     }
   }

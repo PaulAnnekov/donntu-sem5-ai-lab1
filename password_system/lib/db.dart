@@ -11,16 +11,24 @@ class Db {
   List<int> _salt = [];
   Map<String, String> _db = null;
 
-  Db(String masterPassword, [String file]) {
+  Db([String file]) {
+    if (file != null) {
+      this._path = file;
+    }
+  }
+
+  /**
+   * Initiates connection to DB with [masterPassword] and returns [true] if
+   * connection was successful.
+   */
+  bool init(String masterPassword) {
     initCipher();
 
     _key=_genKey(masterPassword);
 
-    if (file != null) {
-      this._path = file;
-    }
-
     _initDb();
+
+    return _db != null;
   }
 
   /**
@@ -30,8 +38,7 @@ class Db {
     var salt = new Uint8List.fromList(_salt);
     var params = new Pbkdf2Parameters(salt, 100, 16);
     var keyDerivator = new KeyDerivator("SHA-1/HMAC/PBKDF2")
-      ..init(params)
-    ;
+      ..init(params);
 
     return keyDerivator.process(UTF8.encode(password));
   }
@@ -47,12 +54,15 @@ class Db {
       return _db;
     }
 
-    var params = new KeyParameter(_key);
-    var cipher = new BlockCipher("AES")..init(false, params);
+    var params = new PaddedBlockCipherParameters(new KeyParameter(_key), null);
+    var cipher = new PaddedBlockCipher("AES/PKCS7")..init(false, params);
 
-    var cipherText = cipher.process(file.readAsBytesSync());
-
-    _db=JSON.decode(UTF8.decode(cipherText));
+    try {
+      var dbBytes = cipher.process(file.readAsBytesSync());
+      _db=JSON.decode(UTF8.decode(dbBytes));
+    } catch (e) {
+      print('Malformed data in DB file. Maybe key is invalid. Exception: "$e"');
+    }
 
     return _db;
   }
@@ -63,10 +73,11 @@ class Db {
   _saveDb() {
     var file = new File(_path);
 
-    var params = new KeyParameter(_key);
-    var cipher = new BlockCipher("AES")..init(true, params);
+    var params = new PaddedBlockCipherParameters(new KeyParameter(_key), null);
+    var cipher = new PaddedBlockCipher("AES/PKCS7")..init(true, params);
+    var dbBytes = UTF8.encode(JSON.encode(_db));
 
-    var cipherText = cipher.process(UTF8.encode(JSON.encode(_db)));
+    var cipherText = cipher.process(dbBytes);
 
     file.writeAsBytesSync(cipherText);
   }
@@ -78,7 +89,7 @@ class Db {
     var digest = new Digest('SHA-256');
     var hash = digest.process(UTF8.encode(password));
 
-    _db[login]=hash;
+    _db[login]=UTF8.decode(hash, allowMalformed: true);
     _saveDb();
   }
 
@@ -91,7 +102,7 @@ class Db {
       return null;
     }
 
-    return _db["login"];
+    return _db[login];
   }
 
   /**
