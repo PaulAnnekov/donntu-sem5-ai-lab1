@@ -2,4 +2,8 @@ name: password_system
 version: 0.1.0
 author: Paul Annekov <paul.annekov@gmail.com>
 dependencies:
-  cipher: ">=0.7.0 <0.8.0"
+  #cipher: ">=0.7.0 <0.8.0"
+  cipher:
+    git:
+      url: git://github.com/izaera/cipher.git
+      ref: devel
