@@ -1,3 +1,5 @@
+library db;
+
 import "dart:typed_data";
 import "dart:io";
 import "dart:convert";

@@ -1,5 +1,5 @@
-import "../lib/db.dart";
-import "dart:io";
+import 'package:password_system/db.dart';
+import 'dart:io';
 
 void main() {
   var key;
