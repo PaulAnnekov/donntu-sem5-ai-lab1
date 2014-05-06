@@ -107,3 +107,11 @@ Password system (password_system)
 Application that stores authorization data (login and hashed password) in DB encrypted by symmetric-key algorithm.
 
 This project was made for Lab 4 on Information security technologies in the 6th semester.
+
+
+Authentication via handshake (authentication_via_handshake)
+---------------------------------------------------------------------------
+
+Demo of the authentication procedure between two hosts using a handshake procedure.
+
+This project was made for Lab 1 on Information security technologies in the 6th semester.

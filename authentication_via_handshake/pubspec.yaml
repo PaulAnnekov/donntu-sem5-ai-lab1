@@ -1,0 +1,8 @@
+name: authentication_via_handshake
+version: 0.1.0
+author: Paul Annekov <paul.annekov@gmail.com>
+dependencies:
+  cipher:
+    git:
+      url: git://github.com/izaera/cipher.git
+      ref: devel
