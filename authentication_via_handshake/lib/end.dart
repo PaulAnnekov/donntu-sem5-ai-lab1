@@ -4,18 +4,18 @@ import "package:authentication_via_handshake/authenticator.dart";
 import "package:authentication_via_handshake/peer.dart";
 
 abstract class End {
-  factory End(String end) {
+  factory End(String end, Map<String, String> keys) {
     switch (end) {
       case "authenticator":
-        return new Authenticator();
+        return new Authenticator(keys);
         break;
       case "peer":
-        return new Peer();
+        return new Peer(keys);
         break;
     }
   }
 
-  String onConnect();
+  Map onConnect();
 
-  String onReceive(String message);
+  Map onReceive(Map message);
 }

@@ -28,13 +28,13 @@ class Client {
   void _onConnect(Socket socket) {
     var toSend = _end.onConnect();
     if (toSend != null) {
-      socket.write(toSend);
+      socket.write(JSON.encode(toSend));
     }
 
     socket.transform(UTF8.decoder).listen((message) {
-      var toSend = _end.onReceive(message);
+      var toSend = _end.onReceive(JSON.decode(message));
       if (toSend != null) {
-        socket.write(toSend);
+        socket.write(JSON.encode(toSend));
       }
     });
   }
