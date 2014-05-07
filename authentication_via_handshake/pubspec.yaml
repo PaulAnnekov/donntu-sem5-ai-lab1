@@ -6,3 +6,5 @@ dependencies:
     git:
       url: git://github.com/izaera/cipher.git
       ref: devel
+  collection: any
+  args: any

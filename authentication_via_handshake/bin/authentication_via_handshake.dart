@@ -1,20 +1,28 @@
 import "package:authentication_via_handshake/client.dart";
 import "package:authentication_via_handshake/end.dart";
 
-void main() {
+import 'package:args/args.dart';
+
+void main(List<String> args) {
+  var parser = new ArgParser();
+  parser.addOption('client', abbr: 'c', defaultsTo: 'authenticator', help:
+    '"authenticator" or "peer"');
+  parser.addFlag('help', abbr: 'h', defaultsTo: false);
+  ArgResults results = parser.parse(args);
+
+  if (results['help']) {
+    print(parser.getUsage());
+    return;
+  }
+
   var keys={
-    "paul": "123",
-    "admin": "321"
+    "paul": "1234567890123456",
+    "admin": "0987654321987654"
   };
 
-  print("Application started");
+  print('Client "${results['client']}" started.');
 
-  var client1 = new Client();
-  var client2 = new Client();
-
-  client1.setEnd(new End("authenticator", keys));
-  client2.setEnd(new End("peer", keys));
-
-  client1.initConnection();
-  client2.initConnection();
+  var client = new Client();
+  client.setEnd(new End(results['client'], keys));
+  client.initConnection();
 }
