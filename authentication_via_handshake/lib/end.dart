@@ -15,7 +15,15 @@ abstract class End {
     }
   }
 
+  /**
+   * Makes some action after connection is established and returns map of data
+   * to send to the opposite end or null.
+   */
   Map onConnect();
 
+  /**
+   * Makes some action with passed [message] from oppoiste end and returns map of
+   * data to send or null.
+   */
   Map onReceive(Map message);
 }
